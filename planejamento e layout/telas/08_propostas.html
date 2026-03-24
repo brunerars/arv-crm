@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propostas & Orçamentos — ARV CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --almost-black: #111111;
+    --white: #ffffff;
+    --whitesmoke: #f5f5f5;
+    --dark-grey: #5d5d5d;
+    --grey: #9f9f9f;
+    --light-grey: #d1d1d1;
+    --red: #c82a2a;
+    --monday-purple: #6161ff;
+    --monday-blue: #0073ea;
+    --monday-green: #00ca72;
+    --monday-yellow: #ffcb00;
+    --monday-red: #e44258;
+    --monday-orange: #ff7575;
+    --radius: 8px;
+    --radius-pill: 9999px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+    --shadow-md: 0 4px 16px rgba(0,0,0,.1);
+  }
+
+  body {
+    font-family: 'Inter Tight', sans-serif;
+    background: var(--whitesmoke);
+    color: var(--almost-black);
+    min-height: 100vh;
+    display: flex;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: var(--almost-black);
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 22px 28px;
+  }
+
+  .sidebar-logo .logo-icon {
+    width: 28px; height: 28px;
+    background: var(--red);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .sidebar-logo .logo-icon .material-icons-outlined { font-size: 16px; color: var(--white); }
+
+  .sidebar-logo span {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -.3px;
+  }
+
+  .sidebar-nav { flex: 1; padding: 0 12px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    color: rgba(255,255,255,.5);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    text-decoration: none;
+    position: relative;
+    margin-bottom: 2px;
+  }
+
+  .nav-item:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.06); }
+
+  .nav-item.active {
+    color: var(--white);
+    background: rgba(255,255,255,.08);
+    border-left: 3px solid var(--red);
+    margin-left: -3px;
+    padding-left: 17px;
+  }
+
+  .nav-item .material-icons-outlined { font-size: 20px; }
+
+  .nav-sub {
+    padding-left: 46px;
+    margin-bottom: 2px;
+  }
+
+  .nav-sub .nav-item {
+    font-size: 13px;
+    padding: 7px 14px;
+    color: rgba(255,255,255,.4);
+  }
+
+  .nav-separator {
+    height: 1px;
+    background: rgba(255,255,255,.08);
+    margin: 14px 14px;
+  }
+
+  .sidebar-user {
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+
+  .sidebar-user .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; color: var(--white);
+  }
+
+  .sidebar-user .user-info { display: flex; flex-direction: column; }
+  .sidebar-user .user-info .name { font-size: 13px; font-weight: 600; color: var(--white); }
+  .sidebar-user .user-info .role { font-size: 11px; color: rgba(255,255,255,.4); }
+
+  /* ─── MAIN ─── */
+  .main-wrapper {
+    margin-left: 260px;
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    height: 60px;
+    background: var(--white);
+    border-bottom: 1px solid var(--light-grey);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--grey);
+  }
+
+  .breadcrumb span.current { color: var(--almost-black); font-weight: 600; }
+
+  .topbar-actions { display: flex; align-items: center; gap: 14px; }
+
+  .search-box {
+    display: flex; align-items: center;
+    background: var(--whitesmoke);
+    border: 1px solid var(--light-grey);
+    border-radius: var(--radius);
+    padding: 0 12px;
+    height: 38px;
+    gap: 8px;
+    transition: border-color .15s;
+  }
+
+  .search-box:focus-within { border-color: var(--monday-blue); }
+
+  .search-box .material-icons-outlined { font-size: 18px; color: var(--grey); }
+
+  .search-box input {
+    border: none; outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    width: 200px;
+    color: var(--almost-black);
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 20px; height: 38px;
+    background: var(--almost-black);
+    color: var(--white);
+    border: none; border-radius: var(--radius-pill);
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+
+  .btn-primary:hover { background: #2a2a2a; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+  .btn-primary .material-icons-outlined { font-size: 18px; }
+
+  /* ─── CONTENT ─── */
+  .content { padding: 28px 32px 40px; flex: 1; }
+
+  /* ─── FILTER BAR ─── */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .filter-tabs {
+    display: flex;
+    background: var(--white);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--light-grey);
+    overflow: hidden;
+  }
+
+  .filter-tab {
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--dark-grey);
+    cursor: pointer;
+    transition: all .15s;
+    border: none; background: none;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  .filter-tab:hover { background: var(--whitesmoke); }
+
+  .filter-tab.active {
+    background: var(--almost-black);
+    color: var(--white);
+  }
+
+  .filter-select {
+    height: 36px;
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--light-grey);
+    border-radius: var(--radius-pill);
+    background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239f9f9f'/%3E%3C/svg%3E") no-repeat right 12px center;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: var(--dark-grey);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .filter-range {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12.5px; color: var(--grey);
+  }
+
+  .filter-range input {
+    width: 90px; height: 36px;
+    border: 1px solid var(--light-grey);
+    border-radius: var(--radius-pill);
+    padding: 0 12px;
+    font-family: inherit; font-size: 12.5px;
+    color: var(--dark-grey);
+    outline: none;
+    background: var(--white);
+  }
+
+  .filter-range input:focus { border-color: var(--monday-blue); }
+
+  .filter-clear {
+    font-size: 12.5px;
+    color: var(--monday-blue);
+    cursor: pointer;
+    font-weight: 500;
+    border: none; background: none;
+    font-family: inherit;
+    margin-left: 4px;
+  }
+
+  .filter-clear:hover { text-decoration: underline; }
+
+  /* ─── KPI CARDS ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+
+  .kpi-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 22px 20px 18px;
+    border-top: 4px solid transparent;
+    transition: transform .15s, box-shadow .15s;
+  }
+
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+  .kpi-card .kpi-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .kpi-card .kpi-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .kpi-card .kpi-icon .material-icons-outlined { font-size: 22px; color: var(--white); }
+
+  .kpi-card .kpi-change {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+  }
+
+  .kpi-change.up { background: rgba(0,202,114,.12); color: #00854a; }
+  .kpi-change.down { background: rgba(228,66,88,.1); color: var(--monday-red); }
+
+  .kpi-card .kpi-value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  .kpi-card .kpi-subtitle {
+    font-size: 12.5px;
+    color: var(--grey);
+    font-weight: 400;
+  }
+
+  /* ─── TABLE ─── */
+  .table-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .proposals-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  .proposals-table thead th {
+    background: var(--almost-black);
+    color: var(--white);
+    padding: 13px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    position: sticky;
+    top: 60px;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .proposals-table thead th:hover { background: #222; }
+
+  .proposals-table thead th .sort-arrow {
+    font-size: 14px;
+    vertical-align: middle;
+    opacity: .4;
+    margin-left: 4px;
+  }
+
+  .proposals-table tbody tr {
+    transition: background .1s;
+    border-bottom: 1px solid rgba(0,0,0,.04);
+  }
+
+  .proposals-table tbody tr:nth-child(even) { background: var(--whitesmoke); }
+  .proposals-table tbody tr:hover { background: #eef2ff; }
+
+  .proposals-table td {
+    padding: 13px 16px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .proposal-number {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--almost-black);
+    font-family: 'Inter Tight', monospace;
+  }
+
+  .empresa-name { font-weight: 600; color: var(--almost-black); }
+  .projeto-name { color: var(--dark-grey); }
+
+  .valor-cell { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .rev-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--whitesmoke);
+    border: 1px solid var(--light-grey);
+    color: var(--dark-grey);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+    gap: 5px;
+  }
+
+  .status-rascunho { background: #e9e9e9; color: var(--dark-grey); }
+  .status-elaboracao { background: rgba(255,203,0,.2); color: #7a6100; }
+  .status-enviada { background: var(--monday-blue); color: var(--white); }
+  .status-aceita { background: var(--monday-green); color: var(--white); }
+  .status-recusada { background: var(--monday-red); color: var(--white); }
+
+  .vendedor-name { font-size: 13px; color: var(--dark-grey); }
+  .data-envio { font-size: 13px; color: var(--grey); font-variant-numeric: tabular-nums; }
+
+  .action-btns { display: flex; gap: 4px; }
+
+  .action-btn {
+    width: 32px; height: 32px;
+    border-radius: var(--radius);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--grey);
+    transition: all .12s;
+  }
+
+  .action-btn:hover { background: var(--whitesmoke); color: var(--almost-black); }
+  .action-btn .material-icons-outlined { font-size: 19px; }
+
+  /* ─── TABLE FOOTER ─── */
+  .table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-top: 1px solid rgba(0,0,0,.06);
+    font-size: 13px;
+    color: var(--grey);
+  }
+
+  .pagination { display: flex; align-items: center; gap: 6px; }
+
+  .page-btn {
+    width: 34px; height: 34px;
+    border: 1px solid var(--light-grey);
+    border-radius: var(--radius);
+    background: var(--white);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--dark-grey);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all .12s;
+  }
+
+  .page-btn:hover { background: var(--whitesmoke); border-color: var(--grey); }
+  .page-btn.active { background: var(--almost-black); color: var(--white); border-color: var(--almost-black); }
+  .page-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .page-btn .material-icons-outlined { font-size: 18px; }
+
+  /* ─── MODAL ─── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-backdrop.open { display: flex; }
+
+  .modal {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.25);
+    width: 100%;
+    max-width: 960px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: modalIn .2s ease-out;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 28px;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+
+  .modal-header-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  .modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--almost-black);
+    letter-spacing: -.2px;
+  }
+
+  .modal-close {
+    width: 36px; height: 36px;
+    border-radius: var(--radius);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--grey);
+    transition: all .12s;
+  }
+
+  .modal-close:hover { background: var(--whitesmoke); color: var(--almost-black); }
+
+  .modal-body {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 0;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+  }
+
+  .modal-left {
+    padding: 24px 28px;
+    border-right: 1px solid rgba(0,0,0,.06);
+  }
+
+  .modal-right { padding: 24px 24px; }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--grey);
+    margin-bottom: 14px;
+    margin-top: 24px;
+  }
+
+  .section-title:first-child { margin-top: 0; }
+
+  /* Valores */
+  .valor-estimado {
+    font-size: 15px;
+    color: var(--grey);
+    text-decoration: line-through;
+    margin-bottom: 4px;
+  }
+
+  .valor-final {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--almost-black);
+    letter-spacing: -.5px;
+    margin-bottom: 4px;
+  }
+
+  .valor-antecipacao {
+    font-size: 13px;
+    color: var(--dark-grey);
+    margin-bottom: 0;
+  }
+
+  .valor-antecipacao strong { font-weight: 700; }
+
+  /* Stacked bar */
+  .stacked-bar {
+    display: flex;
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    margin-top: 6px;
+  }
+
+  .stacked-bar .bar-segment {
+    height: 100%;
+    transition: opacity .15s;
+    position: relative;
+  }
+
+  .stacked-bar .bar-segment:hover { opacity: .8; }
+
+  .cost-table {
+    width: 100%;
+    font-size: 13px;
+    border-collapse: collapse;
+  }
+
+  .cost-table td {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0,0,0,.04);
+  }
+
+  .cost-table td:first-child {
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .cost-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .cost-table td:nth-child(2) { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cost-table td:nth-child(3) { text-align: right; color: var(--grey); width: 50px; }
+
+  /* Impostos */
+  .impostos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+    font-size: 13px;
+  }
+
+  .imposto-item { display: flex; justify-content: space-between; padding: 5px 0; }
+  .imposto-item .label { color: var(--dark-grey); }
+  .imposto-item .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Totais */
+  .totais { margin-top: 6px; }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(0,0,0,.04);
+  }
+
+  .total-row.highlight .value { font-weight: 800; color: var(--red); font-size: 16px; }
+  .total-row .label { color: var(--dark-grey); }
+  .total-row .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 20px; }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 5px; top: 4px; bottom: 4px;
+    width: 2px;
+    background: var(--light-grey);
+    border-radius: 2px;
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: 18px;
+    font-size: 13px;
+  }
+
+  .timeline-item:last-child { padding-bottom: 0; }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -19px; top: 5px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--light-grey);
+    border: 2px solid var(--white);
+  }
+
+  .timeline-item:first-child::before { background: var(--monday-blue); }
+
+  .timeline-date { font-weight: 700; color: var(--almost-black); margin-bottom: 2px; }
+  .timeline-desc { color: var(--dark-grey); font-size: 12.5px; }
+
+  /* Checklist */
+  .checklist { list-style: none; }
+
+  .checklist li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 0;
+    font-size: 13px;
+    color: var(--dark-grey);
+  }
+
+  .checklist li .material-icons-outlined { font-size: 20px; }
+  .checklist li.done .material-icons-outlined { color: var(--monday-green); }
+  .checklist li.done { color: var(--almost-black); }
+  .checklist li.pending .material-icons-outlined { color: var(--light-grey); }
+
+  .progress-bar-wrap {
+    margin-top: 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .progress-bar {
+    flex: 1; height: 6px;
+    background: var(--whitesmoke);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .progress-bar .fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: var(--monday-green);
+    transition: width .3s;
+  }
+
+  .progress-label { font-size: 12px; color: var(--grey); font-weight: 600; white-space: nowrap; }
+
+  /* Vinculado */
+  .vinculado-list { font-size: 13px; }
+
+  .vinculado-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0;
+    color: var(--dark-grey);
+  }
+
+  .vinculado-item .material-icons-outlined { font-size: 18px; color: var(--grey); }
+  .vinculado-item strong { font-weight: 600; color: var(--almost-black); }
+
+  /* Modal footer */
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 28px;
+    border-top: 1px solid rgba(0,0,0,.06);
+  }
+
+  .btn-outline {
+    padding: 0 20px; height: 38px;
+    border: 1px solid var(--light-grey);
+    border-radius: var(--radius-pill);
+    background: var(--white);
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    color: var(--dark-grey);
+    cursor: pointer;
+    transition: all .12s;
+  }
+
+  .btn-outline:hover { border-color: var(--grey); color: var(--almost-black); }
+
+  .btn-ghost {
+    padding: 0 20px; height: 38px;
+    border: none;
+    background: transparent;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    color: var(--grey);
+    cursor: pointer;
+    transition: all .12s;
+    border-radius: var(--radius-pill);
+  }
+
+  .btn-ghost:hover { background: var(--whitesmoke); color: var(--dark-grey); }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 900px) {
+    .modal-body { grid-template-columns: 1fr; }
+    .modal-left { border-right: none; border-bottom: 1px solid rgba(0,0,0,.06); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><span class="material-icons-outlined">memory</span></div>
+    <span>ARV CRM</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-item"><span class="material-icons-outlined">dashboard</span> Dashboard</div>
+    <div class="nav-item"><span class="material-icons-outlined">view_kanban</span> Pipeline</div>
+    <div class="nav-sub">
+      <div class="nav-item">Pré Vendas</div>
+      <div class="nav-item">Vendas</div>
+    </div>
+    <div class="nav-item"><span class="material-icons-outlined">business</span> Empresas</div>
+    <div class="nav-item"><span class="material-icons-outlined">contacts</span> Contatos</div>
+    <div class="nav-item active"><span class="material-icons-outlined">description</span> Propostas & Orçamentos</div>
+    <div class="nav-item"><span class="material-icons-outlined">event</span> Visitas</div>
+    <div class="nav-item"><span class="material-icons-outlined">trending_up</span> Metas de Vendas</div>
+    <div class="nav-item"><span class="material-icons-outlined">analytics</span> Dashboard de Funil</div>
+
+    <div class="nav-separator"></div>
+
+    <div class="nav-item"><span class="material-icons-outlined">settings</span> Configurações</div>
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="avatar">BC</div>
+    <div class="user-info">
+      <span class="name">Bruno</span>
+      <span class="role">Administrador</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ─── MAIN WRAPPER ─── -->
+<div class="main-wrapper">
+
+  <!-- ─── TOPBAR ─── -->
+  <header class="topbar">
+    <div class="breadcrumb">
+      CRM <span class="material-icons-outlined" style="font-size:16px;">chevron_right</span>
+      <span class="current">Propostas & Orçamentos</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="search-box">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" placeholder="Buscar proposta...">
+      </div>
+      <button class="btn-primary" onclick="openModal()">
+        <span class="material-icons-outlined">add</span> Nova Proposta
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── CONTENT ─── -->
+  <main class="content">
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="todos" onclick="filterTable(this, 'todos')">Todos</button>
+        <button class="filter-tab" data-filter="rascunho" onclick="filterTable(this, 'rascunho')">Rascunho</button>
+        <button class="filter-tab" data-filter="elaboracao" onclick="filterTable(this, 'elaboracao')">Em Elaboração</button>
+        <button class="filter-tab" data-filter="enviada" onclick="filterTable(this, 'enviada')">Enviada</button>
+        <button class="filter-tab" data-filter="aceita" onclick="filterTable(this, 'aceita')">Aceita</button>
+        <button class="filter-tab" data-filter="recusada" onclick="filterTable(this, 'recusada')">Recusada</button>
+      </div>
+      <select class="filter-select">
+        <option>Vendedor</option>
+        <option>Mariana</option>
+        <option>Lilian</option>
+        <option>Saulo</option>
+        <option>Santiago</option>
+      </select>
+      <select class="filter-select">
+        <option>Período</option>
+        <option>Últimos 7 dias</option>
+        <option>Últimos 30 dias</option>
+        <option>Este mês</option>
+        <option>Mês anterior</option>
+      </select>
+      <div class="filter-range">
+        <input type="text" placeholder="Valor min">
+        <span>—</span>
+        <input type="text" placeholder="Valor max">
+      </div>
+      <button class="filter-clear" onclick="clearFilters()">Limpar filtros</button>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card" style="border-top-color: var(--monday-blue);">
+        <div class="kpi-header">
+          <div class="kpi-icon" style="background: var(--monday-blue);">
+            <span class="material-icons-outlined">send</span>
+          </div>
+          <span class="kpi-change up">&#8593;12%</span>
+        </div>
+        <div class="kpi-value">23</div>
+        <div class="kpi-subtitle">Propostas Enviadas este mês</div>
+      </div>
+      <div class="kpi-card" style="border-top-color: var(--monday-purple);">
+        <div class="kpi-header">
+          <div class="kpi-icon" style="background: var(--monday-purple);">
+            <span class="material-icons-outlined">payments</span>
+          </div>
+          <span class="kpi-change up">&#8593;8%</span>
+        </div>
+        <div class="kpi-value">R$ 3.820.000</div>
+        <div class="kpi-subtitle">Valor Total em propostas ativas</div>
+      </div>
+      <div class="kpi-card" style="border-top-color: var(--almost-black);">
+        <div class="kpi-header">
+          <div class="kpi-icon" style="background: var(--almost-black);">
+            <span class="material-icons-outlined">analytics</span>
+          </div>
+          <span class="kpi-change down">&#8595;5%</span>
+        </div>
+        <div class="kpi-value">R$ 166.000</div>
+        <div class="kpi-subtitle">Ticket Médio por proposta</div>
+      </div>
+      <div class="kpi-card" style="border-top-color: var(--monday-green);">
+        <div class="kpi-header">
+          <div class="kpi-icon" style="background: var(--monday-green);">
+            <span class="material-icons-outlined">trending_up</span>
+          </div>
+          <span class="kpi-change up">&#8593;3%</span>
+        </div>
+        <div class="kpi-value">34%</div>
+        <div class="kpi-subtitle">Taxa de Conversão propostas &rarr; vendas</div>
+      </div>
+    </div>
+
+    <!-- PROPOSALS TABLE -->
+    <div class="table-card">
+      <table class="proposals-table">
+        <thead>
+          <tr>
+            <th>Nº Proposta <span class="sort-arrow material-icons-outlined">unfold_more</span></th>
+            <th>Empresa <span class="sort-arrow material-icons-outlined">unfold_more</span></th>
+            <th>Projeto <span class="sort-arrow material-icons-outlined">unfold_more</span></th>
+            <th>Valor (R$) <span class="sort-arrow material-icons-outlined">unfold_more</span></th>
+            <th>Rev.</th>
+            <th>Status <span class="sort-arrow material-icons-outlined">unfold_more</span></th>
+            <th>Vendedor</th>
+            <th>Data Envio <span class="sort-arrow material-icons-outlined">unfold_more</span></th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="proposalsBody">
+          <tr data-status="elaboracao">
+            <td><span class="proposal-number">ORC-2026-052</span></td>
+            <td><span class="empresa-name">AutoParts Brasil</span></td>
+            <td><span class="projeto-name">Célula Robótica</span></td>
+            <td class="valor-cell">680.000</td>
+            <td><span class="rev-badge">v3</span></td>
+            <td><span class="status-badge status-elaboracao">Em Elaboração</span></td>
+            <td><span class="vendedor-name">Mariana</span></td>
+            <td><span class="data-envio">—</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined">edit</span></button>
+              </div>
+            </td>
+          </tr>
+          <tr data-status="enviada">
+            <td><span class="proposal-number">ORC-2026-051</span></td>
+            <td><span class="empresa-name">Textil Nordeste</span></td>
+            <td><span class="projeto-name">Automação Tecelagem</span></td>
+            <td class="valor-cell">560.000</td>
+            <td><span class="rev-badge">v2</span></td>
+            <td><span class="status-badge status-enviada">Enviada</span></td>
+            <td><span class="vendedor-name">Lilian</span></td>
+            <td><span class="data-envio">12/03/2026</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+              </div>
+            </td>
+          </tr>
+          <tr data-status="aceita">
+            <td><span class="proposal-number">ORC-2026-050</span></td>
+            <td><span class="empresa-name">Metalúrgica Gaúcha</span></td>
+            <td><span class="projeto-name">Célula Soldagem</span></td>
+            <td class="valor-cell">480.000</td>
+            <td><span class="rev-badge">v1</span></td>
+            <td><span class="status-badge status-aceita">Aceita</span></td>
+            <td><span class="vendedor-name">Saulo</span></td>
+            <td><span class="data-envio">08/03/2026</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+              </div>
+            </td>
+          </tr>
+          <tr data-status="enviada">
+            <td><span class="proposal-number">ORC-2026-049</span></td>
+            <td><span class="empresa-name">Alimentos Naturais</span></td>
+            <td><span class="projeto-name">Automação Packaging</span></td>
+            <td class="valor-cell">410.000</td>
+            <td><span class="rev-badge">v2</span></td>
+            <td><span class="status-badge status-enviada">Enviada</span></td>
+            <td><span class="vendedor-name">Mariana</span></td>
+            <td><span class="data-envio">05/03/2026</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+              </div>
+            </td>
+          </tr>
+          <tr data-status="elaboracao">
+            <td><span class="proposal-number">ORC-2026-048</span></td>
+            <td><span class="empresa-name">Petroquímica Santos</span></td>
+            <td><span class="projeto-name">Automação Válvulas</span></td>
+            <td class="valor-cell">520.000</td>
+            <td><span class="rev-badge">v1</span></td>
+            <td><span class="status-badge status-elaboracao">Em Elaboração</span></td>
+            <td><span class="vendedor-name">Lilian</span></td>
+            <td><span class="data-envio">—</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined">edit</span></button>
+              </div>
+            </td>
+          </tr>
+          <tr data-status="enviada">
+            <td><span class="proposal-number">ORC-2026-047</span></td>
+            <td><span class="empresa-name">Siderúrgica Nacional</span></td>
+            <td><span class="projeto-name">Retrofit CLP</span></td>
+            <td class="valor-cell">340.000</td>
+            <td><span class="rev-badge">v2</span></td>
+            <td><span class="status-badge status-enviada">Enviada</span></td>
+            <td><span class="vendedor-name">Saulo</span></td>
+            <td><span class="data-envio">01/03/2026</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+              </div>
+            </td>
+          </tr>
+          <tr data-status="recusada">
+            <td><span class="proposal-number">ORC-2026-046</span></td>
+            <td><span class="empresa-name">Vidros Temperados BR</span></td>
+            <td><span class="projeto-name">Linha Robótica</span></td>
+            <td class="valor-cell">290.000</td>
+            <td><span class="rev-badge">v1</span></td>
+            <td><span class="status-badge status-recusada">Recusada</span></td>
+            <td><span class="vendedor-name">Santiago</span></td>
+            <td><span class="data-envio">25/02/2026</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+              </div>
+            </td>
+          </tr>
+          <tr data-status="enviada">
+            <td><span class="proposal-number">ORC-2026-045</span></td>
+            <td><span class="empresa-name">Farmacêutica Central</span></td>
+            <td><span class="projeto-name">Retrofit</span></td>
+            <td class="valor-cell">175.000</td>
+            <td><span class="rev-badge">v1</span></td>
+            <td><span class="status-badge status-enviada">Enviada</span></td>
+            <td><span class="vendedor-name">Saulo</span></td>
+            <td><span class="data-envio">22/02/2026</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+              </div>
+            </td>
+          </tr>
+          <tr data-status="aceita">
+            <td><span class="proposal-number">ORC-2026-044</span></td>
+            <td><span class="empresa-name">Ind. Papel Paraná</span></td>
+            <td><span class="projeto-name">Integração</span></td>
+            <td class="valor-cell">195.000</td>
+            <td><span class="rev-badge">v1</span></td>
+            <td><span class="status-badge status-aceita">Aceita</span></td>
+            <td><span class="vendedor-name">Mariana</span></td>
+            <td><span class="data-envio">18/02/2026</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+              </div>
+            </td>
+          </tr>
+          <tr data-status="rascunho">
+            <td><span class="proposal-number">ORC-2026-043</span></td>
+            <td><span class="empresa-name">Cerâmica Premium</span></td>
+            <td><span class="projeto-name">Packaging</span></td>
+            <td class="valor-cell">195.000</td>
+            <td><span class="rev-badge">v1</span></td>
+            <td><span class="status-badge status-rascunho">Rascunho</span></td>
+            <td><span class="vendedor-name">Santiago</span></td>
+            <td><span class="data-envio">—</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Visualizar" onclick="openModal()"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined">edit</span></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="table-footer">
+        <span>Mostrando 1-10 de 47</span>
+        <div class="pagination">
+          <button class="page-btn" disabled><span class="material-icons-outlined">chevron_left</span></button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">4</button>
+          <button class="page-btn">5</button>
+          <button class="page-btn"><span class="material-icons-outlined">chevron_right</span></button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ─── PROPOSAL DETAIL MODAL ─── -->
+<div class="modal-backdrop" id="proposalModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <span class="modal-title">ORC-2026-052 — AutoParts Brasil</span>
+        <span class="status-badge status-elaboracao">Em Elaboração</span>
+        <span class="rev-badge">v3</span>
+      </div>
+      <button class="modal-close" onclick="closeModal()"><span class="material-icons-outlined">close</span></button>
+    </div>
+
+    <div class="modal-body">
+      <!-- LEFT COLUMN -->
+      <div class="modal-left">
+        <div class="section-title">Valores</div>
+        <div class="valor-estimado">Valor Estimado: R$ 720.000</div>
+        <div class="valor-final">R$ 680.000</div>
+        <div class="valor-antecipacao">Antecipação: <strong>R$ 136.000</strong> (20%)</div>
+
+        <div class="section-title">Composição de Custos</div>
+        <div class="stacked-bar">
+          <div class="bar-segment" style="width:40%; background:#4e79a7;" title="CMV 40%"></div>
+          <div class="bar-segment" style="width:19%; background:#59a14f;" title="Mão de Obra 19%"></div>
+          <div class="bar-segment" style="width:10%; background:#f28e2b;" title="Terceiros 10%"></div>
+          <div class="bar-segment" style="width:7%; background:#e15759;" title="Custo Fixo 7%"></div>
+          <div class="bar-segment" style="width:3%; background:#76b7b2;" title="Custo Financeiro 3%"></div>
+          <div class="bar-segment" style="width:5%; background:#b07aa1;" title="Comissão 5%"></div>
+          <div class="bar-segment" style="width:16%; background:#ff9da7;" title="Markup 16%"></div>
+        </div>
+        <table class="cost-table">
+          <tr>
+            <td><span class="cost-dot" style="background:#4e79a7;"></span> CMV</td>
+            <td>R$ 272.000</td>
+            <td>40%</td>
+          </tr>
+          <tr>
+            <td><span class="cost-dot" style="background:#59a14f;"></span> Mão de Obra</td>
+            <td>R$ 129.200</td>
+            <td>19%</td>
+          </tr>
+          <tr>
+            <td><span class="cost-dot" style="background:#f28e2b;"></span> Terceiros</td>
+            <td>R$ 68.000</td>
+            <td>10%</td>
+          </tr>
+          <tr>
+            <td><span class="cost-dot" style="background:#e15759;"></span> Custo Fixo</td>
+            <td>R$ 47.600</td>
+            <td>7%</td>
+          </tr>
+          <tr>
+            <td><span class="cost-dot" style="background:#76b7b2;"></span> Custo Financeiro</td>
+            <td>R$ 20.400</td>
+            <td>3%</td>
+          </tr>
+          <tr>
+            <td><span class="cost-dot" style="background:#b07aa1;"></span> Comissão</td>
+            <td>R$ 34.000</td>
+            <td>5%</td>
+          </tr>
+          <tr>
+            <td><span class="cost-dot" style="background:#ff9da7;"></span> Markup</td>
+            <td>R$ 108.800</td>
+            <td>16%</td>
+          </tr>
+        </table>
+
+        <div class="section-title">Impostos</div>
+        <div class="impostos-grid">
+          <div class="imposto-item"><span class="label">IR</span><span class="value">R$ 10.200</span></div>
+          <div class="imposto-item"><span class="label">CSLL</span><span class="value">R$ 6.120</span></div>
+          <div class="imposto-item"><span class="label">ICMS</span><span class="value">R$ 81.600</span></div>
+          <div class="imposto-item"><span class="label">ISS</span><span class="value">R$ 34.000</span></div>
+          <div class="imposto-item"><span class="label">PIS</span><span class="value">R$ 11.220</span></div>
+          <div class="imposto-item"><span class="label">COFINS</span><span class="value">R$ 51.680</span></div>
+        </div>
+
+        <div class="section-title">Totais Calculados</div>
+        <div class="totais">
+          <div class="total-row highlight">
+            <span class="label">Proposta com Imposto</span>
+            <span class="value">R$ 874.820</span>
+          </div>
+          <div class="total-row">
+            <span class="label">Proposta sem Imposto</span>
+            <span class="value">R$ 680.000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="modal-right">
+        <div class="section-title" style="margin-top:0;">Timeline da Proposta</div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-date">12/03</div>
+            <div class="timeline-desc">Revisão v3: ajuste de escopo</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">08/03</div>
+            <div class="timeline-desc">Revisão v2: correção de valores</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">01/03</div>
+            <div class="timeline-desc">Criação v1</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">28/02</div>
+            <div class="timeline-desc">Solicitação interna</div>
+          </div>
+        </div>
+
+        <div class="section-title">Checklist</div>
+        <ul class="checklist">
+          <li class="done"><span class="material-icons-outlined">check_circle</span> Orçamento interno aprovado</li>
+          <li class="done"><span class="material-icons-outlined">check_circle</span> Comitê validou escopo</li>
+          <li class="done"><span class="material-icons-outlined">check_circle</span> Proposta formatada</li>
+          <li class="pending"><span class="material-icons-outlined">radio_button_unchecked</span> Enviada ao cliente</li>
+          <li class="pending"><span class="material-icons-outlined">radio_button_unchecked</span> Cliente confirmou recebimento</li>
+          <li class="pending"><span class="material-icons-outlined">radio_button_unchecked</span> Análise técnica aprovada</li>
+        </ul>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar"><div class="fill" style="width:50%;"></div></div>
+          <span class="progress-label">3/6 (50%)</span>
+        </div>
+
+        <div class="section-title">Vinculado a</div>
+        <div class="vinculado-list">
+          <div class="vinculado-item">
+            <span class="material-icons-outlined">flag</span>
+            <span><strong>Oportunidade:</strong> AutoParts Brasil — Célula Robótica</span>
+          </div>
+          <div class="vinculado-item">
+            <span class="material-icons-outlined">person</span>
+            <span><strong>Vendedor:</strong> Mariana Constantinou</span>
+          </div>
+          <div class="vinculado-item">
+            <span class="material-icons-outlined">engineering</span>
+            <span><strong>Resp. Técnico:</strong> David Alves</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-ghost">Duplicar</button>
+      <button class="btn-outline" onclick="closeModal()">Fechar</button>
+      <button class="btn-primary">
+        <span class="material-icons-outlined">edit</span> Editar Proposta
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Modal open/close
+  function openModal() {
+    document.getElementById('proposalModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('proposalModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('proposalModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Close modal on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Filter table by status
+  function filterTable(btn, status) {
+    // Update active tab
+    document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+
+    // Filter rows
+    var rows = document.querySelectorAll('#proposalsBody tr');
+    rows.forEach(function(row) {
+      if (status === 'todos') {
+        row.style.display = '';
+      } else {
+        row.style.display = row.getAttribute('data-status') === status ? '' : 'none';
+      }
+    });
+  }
+
+  // Clear filters
+  function clearFilters() {
+    // Reset status tabs
+    document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelector('.filter-tab[data-filter="todos"]').classList.add('active');
+
+    // Show all rows
+    document.querySelectorAll('#proposalsBody tr').forEach(function(row) {
+      row.style.display = '';
+    });
+
+    // Reset selects
+    document.querySelectorAll('.filter-select').forEach(function(s) { s.selectedIndex = 0; });
+
+    // Reset range inputs
+    document.querySelectorAll('.filter-range input').forEach(function(i) { i.value = ''; });
+  }
+</script>
+
+</body>
+</html>

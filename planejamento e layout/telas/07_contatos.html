@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARV CRM — Contatos</title>
+
+  <!-- Google Fonts: Inter Tight + Material Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+
+  <style>
+    /* ========================================
+       DESIGN SYSTEM TOKENS
+       ======================================== */
+    :root {
+      --almost-black: #111111;
+      --black: #000000;
+      --white: #ffffff;
+      --whitesmoke: #f5f5f5;
+      --dark-grey: #5d5d5d;
+      --grey: #9f9f9f;
+      --light-grey: #d1d1d1;
+      --red: #c82a2a;
+
+      --monday-purple: #6161ff;
+      --monday-blue: #0073ea;
+      --monday-green: #00ca72;
+      --monday-yellow: #ffcb00;
+      --monday-red: #e44258;
+      --monday-orange: #ff7575;
+
+      --sidebar-width: 260px;
+      --topbar-height: 60px;
+
+      --radius-card: 8px;
+      --radius-pill: 9999px;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.1);
+
+      --transition-fast: .15s ease;
+      --transition-base: .25s ease;
+      --transition-slow: .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ========================================
+       RESET & BASE
+       ======================================== */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { font-size:14px; }
+    body {
+      font-family:'Inter Tight',-apple-system,BlinkMacSystemFont,sans-serif;
+      background:var(--whitesmoke);
+      color:var(--almost-black);
+      line-height:1.5;
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* ========================================
+       SIDEBAR
+       ======================================== */
+    .sidebar {
+      position:fixed; top:0; left:0;
+      width:var(--sidebar-width); height:100vh;
+      background:var(--almost-black);
+      display:flex; flex-direction:column;
+      z-index:100; overflow:hidden;
+    }
+
+    .sidebar-logo {
+      display:flex; align-items:center; gap:12px;
+      padding:20px 20px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      min-height:64px; flex-shrink:0;
+    }
+    .sidebar-logo .logo-icon {
+      width:32px; height:32px; background:var(--red);
+      border-radius:var(--radius-card);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .sidebar-logo .logo-icon span { color:var(--white); font-weight:700; font-size:15px; }
+    .sidebar-logo .logo-text { color:var(--white); font-size:18px; font-weight:700; letter-spacing:-.3px; }
+
+    .sidebar-nav { flex:1; overflow-y:auto; overflow-x:hidden; padding:12px 0; }
+    .sidebar-nav::-webkit-scrollbar { width:4px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background:rgba(255,255,255,.15); border-radius:4px; }
+
+    .nav-item {
+      position:relative; display:flex; align-items:center; gap:14px;
+      padding:10px 20px; color:rgba(255,255,255,.6); text-decoration:none;
+      font-size:13.5px; font-weight:500; white-space:nowrap; cursor:pointer;
+      transition:color var(--transition-fast),background var(--transition-fast);
+      border-left:3px solid transparent;
+    }
+    .nav-item:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.85); }
+    .nav-item.active { color:var(--white); border-left-color:var(--red); background:rgba(255,255,255,.04); }
+    .nav-item .material-icons-outlined { font-size:20px; flex-shrink:0; width:20px; text-align:center; }
+    .nav-item .expand-arrow { margin-left:auto; font-size:18px; transition:transform var(--transition-base); }
+    .nav-item.expanded .expand-arrow { transform:rotate(180deg); }
+
+    .nav-sub { max-height:0; overflow:hidden; transition:max-height var(--transition-slow); }
+    .nav-sub.open { max-height:120px; }
+    .nav-sub-item {
+      display:flex; align-items:center; padding:8px 20px 8px 57px;
+      color:rgba(255,255,255,.45); text-decoration:none; font-size:13px;
+      cursor:pointer; transition:color var(--transition-fast),background var(--transition-fast);
+      border-left:3px solid transparent;
+    }
+    .nav-sub-item:hover { color:rgba(255,255,255,.8); background:rgba(255,255,255,.04); }
+    .nav-sub-item .sub-dot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.3); margin-right:12px; flex-shrink:0; }
+
+    .nav-separator { height:1px; background:rgba(255,255,255,.08); margin:12px 20px; }
+
+    .sidebar-footer { flex-shrink:0; border-top:1px solid rgba(255,255,255,.08); padding:8px 0; }
+    .sidebar-user {
+      display:flex; align-items:center; gap:12px; padding:10px 20px;
+      color:rgba(255,255,255,.7); cursor:pointer;
+      transition:background var(--transition-fast);
+    }
+    .sidebar-user:hover { background:rgba(255,255,255,.06); }
+    .user-avatar {
+      width:32px; height:32px; border-radius:50%;
+      background:var(--monday-blue); color:var(--white);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:600; font-size:13px; flex-shrink:0;
+    }
+    .user-name { font-size:13px; font-weight:600; color:var(--white); }
+    .user-role { font-size:11px; color:rgba(255,255,255,.45); }
+
+    /* ========================================
+       TOPBAR
+       ======================================== */
+    .topbar {
+      position:fixed; top:0; left:var(--sidebar-width); right:0;
+      height:var(--topbar-height); background:var(--white);
+      border-bottom:1px solid var(--light-grey);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 28px; z-index:90;
+    }
+    .breadcrumb { display:flex; align-items:center; gap:6px; font-size:14px; color:var(--grey); }
+    .breadcrumb strong { color:var(--almost-black); }
+
+    .topbar-right { display:flex; align-items:center; gap:14px; }
+    .topbar-search {
+      display:flex; align-items:center; gap:8px;
+      background:var(--whitesmoke); border:1px solid var(--light-grey);
+      border-radius:var(--radius-pill); padding:7px 14px; min-width:320px;
+      transition:border-color var(--transition-fast);
+    }
+    .topbar-search:focus-within { border-color:var(--monday-blue); }
+    .topbar-search .material-icons-outlined { font-size:18px; color:var(--grey); }
+    .topbar-search input {
+      border:none; background:transparent; outline:none;
+      font-family:inherit; font-size:13px; color:var(--almost-black); width:100%;
+    }
+
+    .btn-primary {
+      display:inline-flex; align-items:center; gap:6px;
+      background:var(--monday-blue); color:var(--white);
+      border:none; border-radius:var(--radius-pill);
+      padding:8px 20px; font-family:inherit; font-size:13px;
+      font-weight:600; cursor:pointer;
+      transition:background var(--transition-fast), transform var(--transition-fast);
+    }
+    .btn-primary:hover { background:#005bb5; transform:translateY(-1px); }
+
+    .btn-outline {
+      display:inline-flex; align-items:center; gap:6px;
+      background:transparent; color:var(--dark-grey);
+      border:1px solid var(--light-grey); border-radius:var(--radius-pill);
+      padding:8px 20px; font-family:inherit; font-size:13px;
+      font-weight:500; cursor:pointer;
+      transition:border-color var(--transition-fast), background var(--transition-fast);
+    }
+    .btn-outline:hover { border-color:var(--grey); background:var(--whitesmoke); }
+
+    /* ========================================
+       MAIN CONTENT
+       ======================================== */
+    .main {
+      margin-left:var(--sidebar-width);
+      margin-top:var(--topbar-height);
+      padding:28px;
+      min-height:calc(100vh - var(--topbar-height));
+    }
+
+    /* ========================================
+       FILTER BAR
+       ======================================== */
+    .filter-bar {
+      display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+      background:var(--white); border-radius:var(--radius-card);
+      padding:16px 20px; margin-bottom:20px;
+      box-shadow:var(--shadow-sm);
+    }
+    .filter-group { display:flex; align-items:center; gap:6px; }
+    .filter-group-label { font-size:12px; font-weight:600; color:var(--dark-grey); margin-right:4px; white-space:nowrap; }
+
+    .pill {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:5px 14px; border-radius:var(--radius-pill);
+      font-size:12px; font-weight:500; cursor:pointer;
+      border:1px solid var(--light-grey); background:var(--white);
+      color:var(--dark-grey);
+      transition:all var(--transition-fast);
+    }
+    .pill:hover { border-color:var(--grey); }
+    .pill.active { background:var(--almost-black); color:var(--white); border-color:var(--almost-black); }
+    .pill.active-red { background:var(--monday-red); color:var(--white); border-color:var(--monday-red); }
+    .pill.active-yellow { background:var(--monday-yellow); color:var(--almost-black); border-color:var(--monday-yellow); }
+    .pill.active-grey { background:var(--light-grey); color:var(--almost-black); border-color:var(--light-grey); }
+
+    .filter-select {
+      padding:6px 12px; border-radius:var(--radius-pill);
+      border:1px solid var(--light-grey); background:var(--white);
+      font-family:inherit; font-size:12px; color:var(--dark-grey);
+      cursor:pointer; outline:none;
+      transition:border-color var(--transition-fast);
+    }
+    .filter-select:focus { border-color:var(--monday-blue); }
+
+    .clear-filters {
+      font-size:12px; color:var(--monday-blue); cursor:pointer;
+      background:none; border:none; font-family:inherit; font-weight:500;
+      margin-left:auto; transition:color var(--transition-fast);
+    }
+    .clear-filters:hover { color:#005bb5; text-decoration:underline; }
+
+    .filter-separator {
+      width:1px; height:24px; background:var(--light-grey); flex-shrink:0;
+    }
+
+    /* ========================================
+       KPI CARDS
+       ======================================== */
+    .kpi-grid {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+      margin-bottom:24px;
+    }
+    .kpi-card {
+      background:var(--white); border-radius:var(--radius-card);
+      padding:20px; box-shadow:var(--shadow-sm);
+      border-top:3px solid var(--light-grey);
+    }
+    .kpi-card.border-red { border-top-color:var(--monday-red); }
+    .kpi-card.border-yellow { border-top-color:var(--monday-yellow); }
+    .kpi-card.border-grey { border-top-color:var(--light-grey); }
+    .kpi-card.border-blue { border-top-color:var(--monday-blue); }
+
+    .kpi-label { font-size:12px; font-weight:500; color:var(--grey); margin-bottom:4px; }
+    .kpi-value { font-size:28px; font-weight:700; color:var(--almost-black); }
+
+    /* ========================================
+       TABLE
+       ======================================== */
+    .table-container {
+      background:var(--white); border-radius:var(--radius-card);
+      box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:20px;
+    }
+    .table-wrapper { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; }
+    thead { background:var(--whitesmoke); }
+    th {
+      padding:12px 16px; font-size:11.5px; font-weight:600;
+      color:var(--grey); text-transform:uppercase; letter-spacing:.5px;
+      text-align:left; white-space:nowrap; border-bottom:1px solid var(--light-grey);
+    }
+    td {
+      padding:12px 16px; font-size:13px; color:var(--almost-black);
+      border-bottom:1px solid #f0f0f0; white-space:nowrap;
+    }
+    tbody tr { transition:background var(--transition-fast); }
+    tbody tr:hover { background:rgba(0,115,234,.03); }
+
+    .badge {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:3px 12px; border-radius:var(--radius-pill);
+      font-size:11.5px; font-weight:600;
+    }
+    .badge-decisor { background:var(--monday-red); color:var(--white); }
+    .badge-influenciador { background:var(--monday-yellow); color:var(--almost-black); }
+    .badge-operacional { background:var(--light-grey); color:var(--almost-black); }
+
+    .status-active { color:var(--monday-green); font-weight:500; }
+    .status-inactive { color:var(--grey); font-weight:500; }
+
+    .action-btn {
+      background:none; border:none; cursor:pointer;
+      color:var(--grey); padding:4px;
+      border-radius:4px; transition:all var(--transition-fast);
+    }
+    .action-btn:hover { color:var(--monday-blue); background:rgba(0,115,234,.08); }
+
+    /* Pagination */
+    .table-footer {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 20px; border-top:1px solid #f0f0f0;
+    }
+    .pagination-info { font-size:13px; color:var(--grey); }
+    .pagination-controls { display:flex; align-items:center; gap:4px; }
+    .page-btn {
+      width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+      border:1px solid var(--light-grey); border-radius:var(--radius-card);
+      background:var(--white); cursor:pointer; font-size:13px; color:var(--dark-grey);
+      transition:all var(--transition-fast);
+    }
+    .page-btn:hover { border-color:var(--monday-blue); color:var(--monday-blue); }
+    .page-btn.active { background:var(--monday-blue); color:var(--white); border-color:var(--monday-blue); }
+
+    /* ========================================
+       MODAL
+       ======================================== */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+      z-index:200; display:none; align-items:center; justify-content:center;
+    }
+    .modal-overlay.open { display:flex; }
+
+    .modal {
+      background:var(--white); border-radius:12px;
+      width:90%; max-width:860px; max-height:90vh;
+      overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.2);
+      animation:modalIn .25s ease;
+    }
+    @keyframes modalIn {
+      from { opacity:0; transform:translateY(20px) scale(.97); }
+      to { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    .modal-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:24px 28px 16px; border-bottom:1px solid #f0f0f0;
+    }
+    .modal-header-left { display:flex; align-items:center; gap:16px; }
+    .modal-title { font-size:20px; font-weight:700; }
+    .modal-subtitle { font-size:13px; color:var(--grey); margin-top:2px; }
+    .modal-close {
+      width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+      border:none; background:var(--whitesmoke); border-radius:50%; cursor:pointer;
+      color:var(--dark-grey); transition:all var(--transition-fast);
+    }
+    .modal-close:hover { background:var(--light-grey); }
+
+    .modal-body { padding:24px 28px; display:flex; gap:28px; }
+    .modal-col-left { flex:0 0 58%; }
+    .modal-col-right { flex:1; }
+
+    .detail-row { margin-bottom:14px; }
+    .detail-label { font-size:11px; font-weight:600; color:var(--grey); text-transform:uppercase; letter-spacing:.4px; margin-bottom:2px; }
+    .detail-value { font-size:13.5px; color:var(--almost-black); }
+    .detail-value a { color:var(--monday-blue); text-decoration:none; }
+    .detail-value a:hover { text-decoration:underline; }
+
+    .detail-obs {
+      font-size:13px; color:var(--dark-grey); background:var(--whitesmoke);
+      padding:12px 16px; border-radius:var(--radius-card);
+      line-height:1.6; border-left:3px solid var(--monday-blue);
+    }
+
+    .section-title {
+      font-size:12px; font-weight:700; color:var(--almost-black);
+      text-transform:uppercase; letter-spacing:.5px;
+      margin-bottom:12px; padding-bottom:6px;
+      border-bottom:1px solid #f0f0f0;
+    }
+
+    .deal-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px 0; border-bottom:1px solid #f5f5f5; font-size:12.5px;
+    }
+    .deal-item:last-child { border-bottom:none; }
+    .deal-name { font-weight:600; color:var(--almost-black); }
+    .deal-meta { color:var(--grey); font-size:11.5px; }
+    .deal-status { font-size:11px; font-weight:600; padding:2px 8px; border-radius:var(--radius-pill); }
+    .deal-active { background:rgba(0,202,114,.12); color:var(--monday-green); }
+    .deal-won { background:rgba(0,202,114,.12); color:var(--monday-green); }
+    .deal-lost { background:rgba(228,66,88,.1); color:var(--monday-red); }
+
+    .interaction-item {
+      display:flex; align-items:center; gap:10px;
+      padding:7px 0; font-size:12.5px; color:var(--dark-grey);
+    }
+    .interaction-date { font-weight:600; color:var(--almost-black); min-width:42px; }
+    .interaction-icon { font-size:16px; }
+
+    .modal-footer {
+      display:flex; align-items:center; justify-content:flex-end; gap:10px;
+      padding:16px 28px 24px; border-top:1px solid #f0f0f0;
+    }
+
+    /* ========================================
+       RESPONSIVE
+       ======================================== */
+    @media(max-width:768px){
+      .sidebar { display:none; }
+      .topbar { left:0; }
+      .main { margin-left:0; }
+      .kpi-grid { grid-template-columns:repeat(2,1fr); }
+      .modal-body { flex-direction:column; }
+      .modal-col-left { flex:none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ====================================
+       SIDEBAR
+       ==================================== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><span>A</span></div>
+      <span class="logo-text">ARV CRM</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="01_layout.html">
+        <span class="material-icons-outlined">dashboard</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a class="nav-item expanded" href="#" onclick="toggleSub(event,'pipeline-sub')">
+        <span class="material-icons-outlined">view_kanban</span>
+        <span class="nav-label">Pipeline</span>
+        <span class="material-icons-outlined expand-arrow">expand_more</span>
+      </a>
+      <div class="nav-sub open" id="pipeline-sub">
+        <a class="nav-sub-item" href="03_pipeline_prevendas.html">
+          <span class="sub-dot"></span>
+          <span class="nav-label">Pre Vendas</span>
+        </a>
+        <a class="nav-sub-item" href="04_pipeline_vendas.html">
+          <span class="sub-dot"></span>
+          <span class="nav-label">Vendas</span>
+        </a>
+      </div>
+
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">business</span>
+        <span class="nav-label">Empresas</span>
+      </a>
+
+      <a class="nav-item active" href="07_contatos.html">
+        <span class="material-icons-outlined">contacts</span>
+        <span class="nav-label">Contatos</span>
+      </a>
+
+      <a class="nav-item" href="08_propostas.html">
+        <span class="material-icons-outlined">description</span>
+        <span class="nav-label">Propostas & Orcamentos</span>
+      </a>
+
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">event</span>
+        <span class="nav-label">Visitas</span>
+      </a>
+
+      <a class="nav-item" href="10_metas.html">
+        <span class="material-icons-outlined">trending_up</span>
+        <span class="nav-label">Metas de Vendas</span>
+      </a>
+
+      <a class="nav-item" href="11_dashboard_funil.html">
+        <span class="material-icons-outlined">analytics</span>
+        <span class="nav-label">Dashboard de Funil</span>
+      </a>
+
+      <div class="nav-separator"></div>
+
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">settings</span>
+        <span class="nav-label">Configuracoes</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">B</div>
+        <div class="user-info">
+          <div class="user-name">Bruno</div>
+          <div class="user-role">Administrador</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ====================================
+       TOPBAR
+       ==================================== -->
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="breadcrumb">
+        <span>CRM</span>
+        <span>/</span>
+        <strong>Contatos</strong>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="topbar-search">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" id="searchInput" placeholder="Buscar por nome, empresa, e-mail..." />
+      </div>
+      <button class="btn-primary">
+        <span class="material-icons-outlined" style="font-size:18px;">add</span>
+        Novo Contato
+      </button>
+    </div>
+  </header>
+
+  <!-- ====================================
+       MAIN CONTENT
+       ==================================== -->
+  <main class="main">
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span class="filter-group-label">Influencia:</span>
+        <span class="pill active" data-filter="influence" data-value="todos" onclick="setInfluenceFilter(this)">Todos</span>
+        <span class="pill" data-filter="influence" data-value="decisor" onclick="setInfluenceFilter(this)">&#x1F534; Decisores</span>
+        <span class="pill" data-filter="influence" data-value="influenciador" onclick="setInfluenceFilter(this)">&#x1F7E1; Influenciadores</span>
+        <span class="pill" data-filter="influence" data-value="operacional" onclick="setInfluenceFilter(this)">&#x26AA; Operacionais</span>
+      </div>
+
+      <div class="filter-separator"></div>
+
+      <div class="filter-group">
+        <span class="filter-group-label">Empresa:</span>
+        <select class="filter-select" id="filterEmpresa" onchange="applyFilters()">
+          <option value="todos">Todas</option>
+          <option>AutoParts Brasil</option>
+          <option>Metalurgica Gaucha</option>
+          <option>Textil Nordeste</option>
+          <option>Alimentos Naturais</option>
+          <option>Siderurgica Nacional</option>
+          <option>Farmaceutica Central</option>
+          <option>Vidros Temperados</option>
+          <option>Ceramica Premium</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-group-label">Departamento:</span>
+        <select class="filter-select" id="filterDepto" onchange="applyFilters()">
+          <option value="todos">Todos</option>
+          <option>Engenharia</option>
+          <option>Suprimentos</option>
+          <option>Diretoria</option>
+          <option>Operacoes</option>
+          <option>Producao</option>
+        </select>
+      </div>
+
+      <div class="filter-separator"></div>
+
+      <div class="filter-group">
+        <span class="filter-group-label">Status:</span>
+        <span class="pill active" data-filter="status" data-value="todos" onclick="setStatusFilter(this)">Todos</span>
+        <span class="pill" data-filter="status" data-value="ativo" onclick="setStatusFilter(this)">Ativos</span>
+        <span class="pill" data-filter="status" data-value="inativo" onclick="setStatusFilter(this)">Inativos</span>
+      </div>
+
+      <button class="clear-filters" onclick="clearFilters()">Limpar filtros</button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card border-blue">
+        <div class="kpi-label">Total Contatos</div>
+        <div class="kpi-value">284</div>
+      </div>
+      <div class="kpi-card border-red">
+        <div class="kpi-label">Decisores</div>
+        <div class="kpi-value">67</div>
+      </div>
+      <div class="kpi-card border-yellow">
+        <div class="kpi-label">Influenciadores</div>
+        <div class="kpi-value">95</div>
+      </div>
+      <div class="kpi-card border-grey">
+        <div class="kpi-label">Operacionais</div>
+        <div class="kpi-value">122</div>
+      </div>
+    </div>
+
+    <!-- Contacts Table -->
+    <div class="table-container">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Empresa</th>
+              <th>Cargo</th>
+              <th>Departamento</th>
+              <th>Influencia</th>
+              <th>WhatsApp</th>
+              <th>E-mail</th>
+              <th>Status</th>
+              <th>Acoes</th>
+            </tr>
+          </thead>
+          <tbody id="contactsBody">
+            <tr data-influence="decisor" data-empresa="AutoParts Brasil" data-depto="Engenharia" data-status="ativo">
+              <td><strong>Carlos Silva</strong></td>
+              <td>AutoParts Brasil</td>
+              <td>Gerente Eng.</td>
+              <td>Engenharia</td>
+              <td><span class="badge badge-decisor">Decisor</span></td>
+              <td>(19) 99887-6655</td>
+              <td>carlos@autopbr.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(0)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="influenciador" data-empresa="AutoParts Brasil" data-depto="Suprimentos" data-status="ativo">
+              <td><strong>Ana Souza</strong></td>
+              <td>AutoParts Brasil</td>
+              <td>Coord. Compras</td>
+              <td>Suprimentos</td>
+              <td><span class="badge badge-influenciador">Influenciador</span></td>
+              <td>(19) 99776-5544</td>
+              <td>ana@autopbr.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(1)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="decisor" data-empresa="AutoParts Brasil" data-depto="Diretoria" data-status="ativo">
+              <td><strong>Fernanda Dias</strong></td>
+              <td>AutoParts Brasil</td>
+              <td>Diretora Ind.</td>
+              <td>Diretoria</td>
+              <td><span class="badge badge-decisor">Decisor</span></td>
+              <td>(19) 99554-3322</td>
+              <td>fernanda@autopbr.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(2)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="operacional" data-empresa="AutoParts Brasil" data-depto="Engenharia" data-status="ativo">
+              <td><strong>Roberto Lima</strong></td>
+              <td>AutoParts Brasil</td>
+              <td>Eng. Processo</td>
+              <td>Engenharia</td>
+              <td><span class="badge badge-operacional">Operacional</span></td>
+              <td>(19) 99665-4433</td>
+              <td>roberto@autopbr.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(3)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="decisor" data-empresa="Metalurgica Gaucha" data-depto="Operacoes" data-status="ativo">
+              <td><strong>Marcos Oliveira</strong></td>
+              <td>Metalurgica Gaucha</td>
+              <td>Diretor Ops</td>
+              <td>Operacoes</td>
+              <td><span class="badge badge-decisor">Decisor</span></td>
+              <td>(51) 99887-1122</td>
+              <td>marcos@metgaucha.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(4)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="influenciador" data-empresa="Metalurgica Gaucha" data-depto="Engenharia" data-status="ativo">
+              <td><strong>Patricia Santos</strong></td>
+              <td>Metalurgica Gaucha</td>
+              <td>Eng. Producao</td>
+              <td>Engenharia</td>
+              <td><span class="badge badge-influenciador">Influenciador</span></td>
+              <td>(51) 99776-3344</td>
+              <td>patricia@metgaucha.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(5)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="decisor" data-empresa="Textil Nordeste" data-depto="Producao" data-status="ativo">
+              <td><strong>Joao Ferreira</strong></td>
+              <td>Textil Nordeste</td>
+              <td>Gerente Planta</td>
+              <td>Producao</td>
+              <td><span class="badge badge-decisor">Decisor</span></td>
+              <td>(81) 99665-5566</td>
+              <td>joao@textilne.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(6)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="influenciador" data-empresa="Alimentos Naturais" data-depto="Engenharia" data-status="ativo">
+              <td><strong>Lucia Mendes</strong></td>
+              <td>Alimentos Naturais</td>
+              <td>Coord. Projetos</td>
+              <td>Engenharia</td>
+              <td><span class="badge badge-influenciador">Influenciador</span></td>
+              <td>(16) 99554-7788</td>
+              <td>lucia@alimnat.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(7)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="decisor" data-empresa="Siderurgica Nacional" data-depto="Engenharia" data-status="ativo">
+              <td><strong>Ricardo Alves</strong></td>
+              <td>Siderurgica Nacional</td>
+              <td>Diretor Tecnico</td>
+              <td>Engenharia</td>
+              <td><span class="badge badge-decisor">Decisor</span></td>
+              <td>(24) 99443-9900</td>
+              <td>ricardo@sidnac.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(8)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="influenciador" data-empresa="Farmaceutica Central" data-depto="Suprimentos" data-status="ativo">
+              <td><strong>Helena Costa</strong></td>
+              <td>Farmaceutica Central</td>
+              <td>Coord. Compras</td>
+              <td>Suprimentos</td>
+              <td><span class="badge badge-influenciador">Influenciador</span></td>
+              <td>(11) 99332-1122</td>
+              <td>helena@farmcentral.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(9)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="operacional" data-empresa="Vidros Temperados" data-depto="Engenharia" data-status="ativo">
+              <td><strong>Eduardo Prado</strong></td>
+              <td>Vidros Temperados</td>
+              <td>Eng. Automacao</td>
+              <td>Engenharia</td>
+              <td><span class="badge badge-operacional">Operacional</span></td>
+              <td>(12) 99221-3344</td>
+              <td>eduardo@vidrostemp.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(10)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+            <tr data-influence="decisor" data-empresa="Ceramica Premium" data-depto="Producao" data-status="ativo">
+              <td><strong>Sandra Nunes</strong></td>
+              <td>Ceramica Premium</td>
+              <td>Gerente Ind.</td>
+              <td>Producao</td>
+              <td><span class="badge badge-decisor">Decisor</span></td>
+              <td>(19) 99110-5566</td>
+              <td>sandra@cerpremium.com</td>
+              <td><span class="status-active">&#x2705; Ativo</span></td>
+              <td>
+                <button class="action-btn" title="Ver detalhes" onclick="openModal(11)"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></button>
+                <button class="action-btn" title="Editar"><span class="material-icons-outlined" style="font-size:18px;">edit</span></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">
+        <div class="pagination-info">Mostrando <strong>1-12</strong> de <strong>284</strong></div>
+        <div class="pagination-controls">
+          <button class="page-btn"><span class="material-icons-outlined" style="font-size:16px;">chevron_left</span></button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">...</button>
+          <button class="page-btn">24</button>
+          <button class="page-btn"><span class="material-icons-outlined" style="font-size:16px;">chevron_right</span></button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ====================================
+       CONTACT DETAIL MODAL
+       ==================================== -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalBackdrop(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div>
+            <div class="modal-title" id="modalName">Carlos Silva</div>
+            <div class="modal-subtitle" id="modalCompany">AutoParts Brasil</div>
+          </div>
+          <span class="badge badge-decisor" id="modalBadge" style="font-size:13px;padding:5px 16px;">Decisor</span>
+        </div>
+        <button class="modal-close" onclick="closeModal()">
+          <span class="material-icons-outlined" style="font-size:20px;">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-col-left">
+          <div class="detail-row">
+            <div class="detail-label">Nome</div>
+            <div class="detail-value" id="mdNome">Carlos Silva</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Cargo</div>
+            <div class="detail-value" id="mdCargo">Gerente de Engenharia</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Departamento</div>
+            <div class="detail-value" id="mdDepto">Engenharia</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Nivel de Influencia</div>
+            <div class="detail-value" id="mdInfluencia">Decisor</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">E-mail</div>
+            <div class="detail-value"><a href="#" id="mdEmail">carlos@autopartsbrasil.com.br</a></div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">WhatsApp</div>
+            <div class="detail-value" id="mdWhatsapp">(19) 99887-6655</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">LinkedIn</div>
+            <div class="detail-value"><a href="#" id="mdLinkedin">linkedin.com/in/carlossilva</a></div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Status</div>
+            <div class="detail-value" id="mdStatus"><span class="status-active">&#x2705; Ativo</span></div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Data Cadastro</div>
+            <div class="detail-value" id="mdData">15/03/2024</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Observacoes</div>
+            <div class="detail-obs" id="mdObs">Principal ponto de contato tecnico. Participa de todas as reunioes de kickoff. Prefere comunicacao via WhatsApp.</div>
+          </div>
+        </div>
+
+        <div class="modal-col-right">
+          <div class="section-title">Participacao em Deals</div>
+          <div id="mdDeals">
+            <div class="deal-item">
+              <div>
+                <div class="deal-name">Celula Robotica</div>
+                <div class="deal-meta">R$ 680K — Dev. Proposta</div>
+              </div>
+              <span class="deal-status deal-active">Ativa</span>
+            </div>
+            <div class="deal-item">
+              <div>
+                <div class="deal-name">Retrofit PLC</div>
+                <div class="deal-meta">R$ 310K — Venda</div>
+              </div>
+              <span class="deal-status deal-won">&#x2705;</span>
+            </div>
+            <div class="deal-item">
+              <div>
+                <div class="deal-name">Integracao SCADA</div>
+                <div class="deal-meta">R$ 180K — Sem budget</div>
+              </div>
+              <span class="deal-status deal-lost">Descartada</span>
+            </div>
+          </div>
+
+          <div style="margin-top:24px;">
+            <div class="section-title">Ultimas Interacoes</div>
+            <div id="mdInteracoes">
+              <div class="interaction-item">
+                <span class="interaction-date">14/03</span>
+                <span class="interaction-icon">&#x1F4DE;</span>
+                <span>Ligacao com Mariana</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-date">10/03</span>
+                <span class="interaction-icon">&#x1F4E7;</span>
+                <span>E-mail recebido</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-date">05/03</span>
+                <span class="interaction-icon">&#x1F91D;</span>
+                <span>Reuniao kickoff</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-outline" onclick="closeModal()">Fechar</button>
+        <button class="btn-primary">
+          <span class="material-icons-outlined" style="font-size:16px;">edit</span>
+          Editar Contato
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================
+       SCRIPTS
+       ==================================== -->
+  <script>
+    /* ---- Sidebar sub-nav toggle ---- */
+    function toggleSub(e, id) {
+      e.preventDefault();
+      const sub = document.getElementById(id);
+      const item = e.currentTarget;
+      sub.classList.toggle('open');
+      item.classList.toggle('expanded');
+    }
+
+    /* ---- Filter State ---- */
+    let influenceFilter = 'todos';
+    let statusFilter = 'todos';
+
+    function setInfluenceFilter(el) {
+      document.querySelectorAll('[data-filter="influence"]').forEach(p => {
+        p.className = 'pill';
+      });
+      const val = el.dataset.value;
+      influenceFilter = val;
+      if (val === 'todos') el.classList.add('active');
+      else if (val === 'decisor') el.classList.add('active-red');
+      else if (val === 'influenciador') el.classList.add('active-yellow');
+      else if (val === 'operacional') el.classList.add('active-grey');
+      applyFilters();
+    }
+
+    function setStatusFilter(el) {
+      document.querySelectorAll('[data-filter="status"]').forEach(p => {
+        p.className = 'pill';
+      });
+      el.classList.add('active');
+      statusFilter = el.dataset.value;
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const empresaVal = document.getElementById('filterEmpresa').value.toLowerCase();
+      const deptoVal = document.getElementById('filterDepto').value.toLowerCase();
+      const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+      const rows = document.querySelectorAll('#contactsBody tr');
+      let visible = 0;
+
+      rows.forEach(row => {
+        let show = true;
+
+        if (influenceFilter !== 'todos' && row.dataset.influence !== influenceFilter) show = false;
+        if (statusFilter !== 'todos' && row.dataset.status !== statusFilter) show = false;
+        if (empresaVal !== 'todos' && row.dataset.empresa.toLowerCase() !== empresaVal) show = false;
+        if (deptoVal !== 'todos' && row.dataset.depto.toLowerCase() !== deptoVal) show = false;
+
+        if (searchVal) {
+          const text = row.textContent.toLowerCase();
+          if (!text.includes(searchVal)) show = false;
+        }
+
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+
+      document.querySelector('.pagination-info').innerHTML =
+        'Mostrando <strong>1-' + visible + '</strong> de <strong>284</strong>';
+    }
+
+    function clearFilters() {
+      influenceFilter = 'todos';
+      statusFilter = 'todos';
+      document.getElementById('filterEmpresa').value = 'todos';
+      document.getElementById('filterDepto').value = 'todos';
+      document.getElementById('searchInput').value = '';
+
+      document.querySelectorAll('[data-filter="influence"]').forEach(p => {
+        p.className = 'pill';
+        if (p.dataset.value === 'todos') p.classList.add('active');
+      });
+      document.querySelectorAll('[data-filter="status"]').forEach(p => {
+        p.className = 'pill';
+        if (p.dataset.value === 'todos') p.classList.add('active');
+      });
+
+      applyFilters();
+    }
+
+    /* ---- Real-time search ---- */
+    document.getElementById('searchInput').addEventListener('keyup', applyFilters);
+
+    /* ---- Contact Modal Data ---- */
+    const contacts = [
+      {
+        nome:'Carlos Silva', empresa:'AutoParts Brasil', cargo:'Gerente de Engenharia',
+        depto:'Engenharia', influencia:'Decisor', badgeClass:'badge-decisor',
+        email:'carlos@autopartsbrasil.com.br', whatsapp:'(19) 99887-6655',
+        linkedin:'linkedin.com/in/carlossilva', status:'Ativo', data:'15/03/2024',
+        obs:'Principal ponto de contato tecnico. Participa de todas as reunioes de kickoff. Prefere comunicacao via WhatsApp.',
+        deals:[
+          {nome:'Celula Robotica',meta:'R$ 680K — Dev. Proposta',status:'Ativa',cls:'deal-active'},
+          {nome:'Retrofit PLC',meta:'R$ 310K — Venda',status:'\u2705',cls:'deal-won'},
+          {nome:'Integracao SCADA',meta:'R$ 180K — Sem budget',status:'Descartada',cls:'deal-lost'}
+        ],
+        interacoes:[
+          {data:'14/03',icon:'\uD83D\uDCDE',desc:'Ligacao com Mariana'},
+          {data:'10/03',icon:'\uD83D\uDCE7',desc:'E-mail recebido'},
+          {data:'05/03',icon:'\uD83E\uDD1D',desc:'Reuniao kickoff'}
+        ]
+      },
+      {
+        nome:'Ana Souza', empresa:'AutoParts Brasil', cargo:'Coordenadora de Compras',
+        depto:'Suprimentos', influencia:'Influenciador', badgeClass:'badge-influenciador',
+        email:'ana@autopartsbrasil.com.br', whatsapp:'(19) 99776-5544',
+        linkedin:'linkedin.com/in/anasouza', status:'Ativo', data:'20/02/2024',
+        obs:'Responsavel por todas as cotacoes de fornecedores. Muito organizada e responde rapido.',
+        deals:[
+          {nome:'Celula Robotica',meta:'R$ 680K — Dev. Proposta',status:'Ativa',cls:'deal-active'}
+        ],
+        interacoes:[
+          {data:'12/03',icon:'\uD83D\uDCE7',desc:'E-mail enviado'},
+          {data:'08/03',icon:'\uD83D\uDCDE',desc:'Ligacao comercial'}
+        ]
+      },
+      {
+        nome:'Fernanda Dias', empresa:'AutoParts Brasil', cargo:'Diretora Industrial',
+        depto:'Diretoria', influencia:'Decisor', badgeClass:'badge-decisor',
+        email:'fernanda@autopartsbrasil.com.br', whatsapp:'(19) 99554-3322',
+        linkedin:'linkedin.com/in/fernandadias', status:'Ativo', data:'10/01/2024',
+        obs:'Decisao final em projetos acima de R$ 500K. Agenda reunioes quinzenais.',
+        deals:[
+          {nome:'Celula Robotica',meta:'R$ 680K — Dev. Proposta',status:'Ativa',cls:'deal-active'},
+          {nome:'Retrofit PLC',meta:'R$ 310K — Venda',status:'\u2705',cls:'deal-won'}
+        ],
+        interacoes:[
+          {data:'13/03',icon:'\uD83E\uDD1D',desc:'Reuniao de alinhamento'},
+          {data:'01/03',icon:'\uD83D\uDCE7',desc:'E-mail com proposta'}
+        ]
+      },
+      {
+        nome:'Roberto Lima', empresa:'AutoParts Brasil', cargo:'Engenheiro de Processo',
+        depto:'Engenharia', influencia:'Operacional', badgeClass:'badge-operacional',
+        email:'roberto@autopartsbrasil.com.br', whatsapp:'(19) 99665-4433',
+        linkedin:'linkedin.com/in/robertolima', status:'Ativo', data:'05/04/2024',
+        obs:'Contato tecnico para acompanhamento de instalacoes. Disponivel via WhatsApp.',
+        deals:[
+          {nome:'Retrofit PLC',meta:'R$ 310K — Venda',status:'\u2705',cls:'deal-won'}
+        ],
+        interacoes:[
+          {data:'11/03',icon:'\uD83D\uDCDE',desc:'Ligacao tecnica'},
+          {data:'03/03',icon:'\uD83E\uDD1D',desc:'Visita tecnica'}
+        ]
+      },
+      {
+        nome:'Marcos Oliveira', empresa:'Metalurgica Gaucha', cargo:'Diretor de Operacoes',
+        depto:'Operacoes', influencia:'Decisor', badgeClass:'badge-decisor',
+        email:'marcos@metgaucha.com.br', whatsapp:'(51) 99887-1122',
+        linkedin:'linkedin.com/in/marcosoliveira', status:'Ativo', data:'18/02/2024',
+        obs:'Decisor principal na Metalurgica Gaucha. Foco em automacao de processos.',
+        deals:[
+          {nome:'Automacao Linha 3',meta:'R$ 450K — Negociacao',status:'Ativa',cls:'deal-active'}
+        ],
+        interacoes:[
+          {data:'13/03',icon:'\uD83D\uDCDE',desc:'Ligacao comercial'},
+          {data:'07/03',icon:'\uD83D\uDCE7',desc:'E-mail proposta'}
+        ]
+      },
+      {
+        nome:'Patricia Santos', empresa:'Metalurgica Gaucha', cargo:'Engenheira de Producao',
+        depto:'Engenharia', influencia:'Influenciador', badgeClass:'badge-influenciador',
+        email:'patricia@metgaucha.com.br', whatsapp:'(51) 99776-3344',
+        linkedin:'linkedin.com/in/patriciasantos', status:'Ativo', data:'22/03/2024',
+        obs:'Ponto de contato tecnico. Avalia especificacoes e valida projetos.',
+        deals:[
+          {nome:'Automacao Linha 3',meta:'R$ 450K — Negociacao',status:'Ativa',cls:'deal-active'}
+        ],
+        interacoes:[
+          {data:'10/03',icon:'\uD83D\uDCE7',desc:'E-mail tecnico'},
+          {data:'04/03',icon:'\uD83E\uDD1D',desc:'Reuniao tecnica'}
+        ]
+      },
+      {
+        nome:'Joao Ferreira', empresa:'Textil Nordeste', cargo:'Gerente de Planta',
+        depto:'Producao', influencia:'Decisor', badgeClass:'badge-decisor',
+        email:'joao@textilne.com.br', whatsapp:'(81) 99665-5566',
+        linkedin:'linkedin.com/in/joaoferreira', status:'Ativo', data:'12/01/2024',
+        obs:'Gerente da unidade de Recife. Interessado em modernizacao de equipamentos.',
+        deals:[
+          {nome:'Modernizacao Teares',meta:'R$ 520K — Qualificacao',status:'Ativa',cls:'deal-active'}
+        ],
+        interacoes:[
+          {data:'14/03',icon:'\uD83D\uDCDE',desc:'Ligacao follow-up'},
+          {data:'06/03',icon:'\uD83E\uDD1D',desc:'Visita a planta'}
+        ]
+      },
+      {
+        nome:'Lucia Mendes', empresa:'Alimentos Naturais', cargo:'Coordenadora de Projetos',
+        depto:'Engenharia', influencia:'Influenciador', badgeClass:'badge-influenciador',
+        email:'lucia@alimnat.com.br', whatsapp:'(16) 99554-7788',
+        linkedin:'linkedin.com/in/luciamendes', status:'Ativo', data:'28/02/2024',
+        obs:'Coordena projetos de expansao. Boa relacao com diretoria.',
+        deals:[
+          {nome:'Linha Embalagem',meta:'R$ 290K — Proposta',status:'Ativa',cls:'deal-active'}
+        ],
+        interacoes:[
+          {data:'12/03',icon:'\uD83D\uDCE7',desc:'E-mail de proposta'},
+          {data:'09/03',icon:'\uD83D\uDCDE',desc:'Ligacao comercial'}
+        ]
+      },
+      {
+        nome:'Ricardo Alves', empresa:'Siderurgica Nacional', cargo:'Diretor Tecnico',
+        depto:'Engenharia', influencia:'Decisor', badgeClass:'badge-decisor',
+        email:'ricardo@sidnac.com.br', whatsapp:'(24) 99443-9900',
+        linkedin:'linkedin.com/in/ricardoalves', status:'Ativo', data:'05/03/2024',
+        obs:'Decisor tecnico senior. Exige documentacao detalhada antes de aprovar projetos.',
+        deals:[
+          {nome:'Sistema Supervisorio',meta:'R$ 380K — Qualificacao',status:'Ativa',cls:'deal-active'}
+        ],
+        interacoes:[
+          {data:'14/03',icon:'\uD83E\uDD1D',desc:'Reuniao presencial'},
+          {data:'08/03',icon:'\uD83D\uDCE7',desc:'E-mail documentacao'}
+        ]
+      },
+      {
+        nome:'Helena Costa', empresa:'Farmaceutica Central', cargo:'Coordenadora de Compras',
+        depto:'Suprimentos', influencia:'Influenciador', badgeClass:'badge-influenciador',
+        email:'helena@farmcentral.com.br', whatsapp:'(11) 99332-1122',
+        linkedin:'linkedin.com/in/helenacosta', status:'Ativo', data:'19/01/2024',
+        obs:'Gestora de compras. Processo de aprovacao rigoroso com comite interno.',
+        deals:[
+          {nome:'Clean Room Automation',meta:'R$ 750K — Dev. Proposta',status:'Ativa',cls:'deal-active'}
+        ],
+        interacoes:[
+          {data:'13/03',icon:'\uD83D\uDCDE',desc:'Ligacao sobre orcamento'},
+          {data:'10/03',icon:'\uD83D\uDCE7',desc:'E-mail follow-up'}
+        ]
+      },
+      {
+        nome:'Eduardo Prado', empresa:'Vidros Temperados', cargo:'Engenheiro de Automacao',
+        depto:'Engenharia', influencia:'Operacional', badgeClass:'badge-operacional',
+        email:'eduardo@vidrostemp.com.br', whatsapp:'(12) 99221-3344',
+        linkedin:'linkedin.com/in/eduardoprado', status:'Ativo', data:'14/04/2024',
+        obs:'Contato tecnico operacional. Acompanha instalacoes e comissionamento.',
+        deals:[
+          {nome:'Forno Automatizado',meta:'R$ 420K — Negociacao',status:'Ativa',cls:'deal-active'}
+        ],
+        interacoes:[
+          {data:'11/03',icon:'\uD83D\uDCDE',desc:'Ligacao tecnica'},
+          {data:'05/03',icon:'\uD83E\uDD1D',desc:'Visita tecnica'}
+        ]
+      },
+      {
+        nome:'Sandra Nunes', empresa:'Ceramica Premium', cargo:'Gerente Industrial',
+        depto:'Producao', influencia:'Decisor', badgeClass:'badge-decisor',
+        email:'sandra@cerpremium.com.br', whatsapp:'(19) 99110-5566',
+        linkedin:'linkedin.com/in/sandranunes', status:'Ativo', data:'02/02/2024',
+        obs:'Gerente industrial com poder de decisao. Prefere reunioes presenciais.',
+        deals:[
+          {nome:'Automacao Forno',meta:'R$ 350K — Proposta',status:'Ativa',cls:'deal-active'},
+          {nome:'Esteira Automatica',meta:'R$ 180K — Venda',status:'\u2705',cls:'deal-won'}
+        ],
+        interacoes:[
+          {data:'14/03',icon:'\uD83E\uDD1D',desc:'Reuniao na fabrica'},
+          {data:'09/03',icon:'\uD83D\uDCE7',desc:'E-mail proposta revisada'}
+        ]
+      }
+    ];
+
+    /* ---- Modal open/close ---- */
+    function openModal(idx) {
+      const c = contacts[idx];
+      document.getElementById('modalName').textContent = c.nome;
+      document.getElementById('modalCompany').textContent = c.empresa;
+
+      const badge = document.getElementById('modalBadge');
+      badge.textContent = c.influencia;
+      badge.className = 'badge ' + c.badgeClass;
+      badge.style.fontSize = '13px';
+      badge.style.padding = '5px 16px';
+
+      document.getElementById('mdNome').textContent = c.nome;
+      document.getElementById('mdCargo').textContent = c.cargo;
+      document.getElementById('mdDepto').textContent = c.depto;
+      document.getElementById('mdInfluencia').textContent = c.influencia;
+      document.getElementById('mdEmail').textContent = c.email;
+      document.getElementById('mdWhatsapp').textContent = c.whatsapp;
+      document.getElementById('mdLinkedin').textContent = c.linkedin;
+      document.getElementById('mdData').textContent = c.data;
+      document.getElementById('mdObs').textContent = c.obs;
+
+      // Deals
+      let dealsHtml = '';
+      c.deals.forEach(d => {
+        dealsHtml += '<div class="deal-item"><div><div class="deal-name">' + d.nome +
+          '</div><div class="deal-meta">' + d.meta + '</div></div>' +
+          '<span class="deal-status ' + d.cls + '">' + d.status + '</span></div>';
+      });
+      document.getElementById('mdDeals').innerHTML = dealsHtml;
+
+      // Interactions
+      let intHtml = '';
+      c.interacoes.forEach(i => {
+        intHtml += '<div class="interaction-item"><span class="interaction-date">' + i.data +
+          '</span><span class="interaction-icon">' + i.icon +
+          '</span><span>' + i.desc + '</span></div>';
+      });
+      document.getElementById('mdInteracoes').innerHTML = intHtml;
+
+      document.getElementById('modalOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function closeModalBackdrop(e) {
+      if (e.target === e.currentTarget) closeModal();
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+
+</body>
+</html>

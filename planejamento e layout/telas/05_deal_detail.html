@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARV CRM — Deal Detail</title>
+
+  <!-- Google Fonts: Inter Tight + Material Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+
+  <style>
+    /* ========================================
+       DESIGN SYSTEM TOKENS
+       ======================================== */
+    :root {
+      --almost-black: #111111;
+      --black: #000000;
+      --white: #ffffff;
+      --whitesmoke: #f5f5f5;
+      --dark-grey: #5d5d5d;
+      --grey: #9f9f9f;
+      --light-grey: #d1d1d1;
+      --red: #c82a2a;
+
+      --monday-purple: #6161ff;
+      --monday-blue: #0073ea;
+      --monday-green: #00ca72;
+      --monday-yellow: #ffcb00;
+      --monday-red: #e44258;
+      --monday-orange: #ff7575;
+
+      --sidebar-width: 260px;
+      --sidebar-collapsed-width: 72px;
+      --topbar-height: 0px;
+
+      --radius-card: 8px;
+      --radius-pill: 9999px;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.1);
+
+      --transition-fast: .15s ease;
+      --transition-base: .25s ease;
+      --transition-slow: .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ========================================
+       RESET & BASE
+       ======================================== */
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+    }
+    html { font-size: 14px; }
+    body {
+      font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--whitesmoke);
+      color: var(--almost-black);
+      line-height: 1.5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ========================================
+       SIDEBAR
+       ======================================== */
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: var(--sidebar-width); height: 100vh;
+      background: var(--almost-black);
+      display: flex; flex-direction: column;
+      z-index: 100;
+      transition: width var(--transition-slow);
+      overflow: hidden;
+    }
+    .sidebar.collapsed { width: var(--sidebar-collapsed-width); }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 12px;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      min-height: 64px; flex-shrink: 0;
+    }
+    .sidebar-logo .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--red); border-radius: var(--radius-card);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .sidebar-logo .logo-icon span { color: var(--white); font-weight: 700; font-size: 15px; }
+    .sidebar-logo .logo-text {
+      color: var(--white); font-size: 18px; font-weight: 700;
+      letter-spacing: -.3px; white-space: nowrap;
+      opacity: 1; transition: opacity var(--transition-base);
+    }
+    .sidebar.collapsed .logo-text { opacity: 0; pointer-events: none; }
+
+    .sidebar-toggle {
+      position: absolute; top: 22px; right: -14px;
+      width: 28px; height: 28px;
+      background: var(--white); border: 1px solid var(--light-grey);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 110;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition-base), background var(--transition-fast);
+    }
+    .sidebar-toggle:hover { background: var(--whitesmoke); }
+    .sidebar-toggle .material-icons-outlined { font-size: 16px; color: var(--dark-grey); transition: transform var(--transition-base); }
+    .sidebar.collapsed .sidebar-toggle .material-icons-outlined { transform: rotate(180deg); }
+
+    .sidebar-nav {
+      flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 0;
+    }
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 4px; }
+
+    .nav-item {
+      position: relative; display: flex; align-items: center; gap: 14px;
+      padding: 10px 20px; color: rgba(255,255,255,.6);
+      text-decoration: none; font-size: 13.5px; font-weight: 500;
+      white-space: nowrap; cursor: pointer;
+      transition: color var(--transition-fast), background var(--transition-fast);
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); }
+    .nav-item.active { color: var(--white); border-left-color: var(--red); background: rgba(255,255,255,.04); }
+    .nav-item .material-icons-outlined { font-size: 20px; flex-shrink: 0; width: 20px; text-align: center; }
+    .nav-item .nav-label { opacity: 1; transition: opacity var(--transition-base); }
+    .sidebar.collapsed .nav-label { opacity: 0; pointer-events: none; }
+    .nav-item .expand-arrow { margin-left: auto; font-size: 18px; transition: transform var(--transition-base), opacity var(--transition-base); }
+    .nav-item.expanded .expand-arrow { transform: rotate(180deg); }
+    .sidebar.collapsed .expand-arrow { opacity: 0; pointer-events: none; }
+
+    .nav-sub { max-height: 0; overflow: hidden; transition: max-height var(--transition-slow); }
+    .nav-sub.open { max-height: 120px; }
+    .sidebar.collapsed .nav-sub { max-height: 0 !important; }
+
+    .nav-sub-item {
+      display: flex; align-items: center;
+      padding: 8px 20px 8px 57px;
+      color: rgba(255,255,255,.45); text-decoration: none;
+      font-size: 13px; font-weight: 400; white-space: nowrap; cursor: pointer;
+      transition: color var(--transition-fast), background var(--transition-fast);
+      border-left: 3px solid transparent;
+    }
+    .nav-sub-item:hover { color: rgba(255,255,255,.8); background: rgba(255,255,255,.04); }
+    .nav-sub-item.active { color: var(--white); border-left-color: var(--red); }
+    .nav-sub-item .sub-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,255,255,.3); margin-right: 12px; flex-shrink: 0;
+    }
+    .nav-sub-item.active .sub-dot { background: var(--red); }
+
+    .nav-separator { height: 1px; background: rgba(255,255,255,.08); margin: 12px 20px; }
+
+    .sidebar-footer { flex-shrink: 0; border-top: 1px solid rgba(255,255,255,.08); padding: 8px 0; }
+    .sidebar-user { display: flex; align-items: center; gap: 12px; padding: 12px 20px; }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--red), var(--monday-orange));
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      color: var(--white); font-size: 13px; font-weight: 600;
+    }
+    .user-info { white-space: nowrap; opacity: 1; transition: opacity var(--transition-base); }
+    .sidebar.collapsed .user-info { opacity: 0; pointer-events: none; }
+    .user-name { color: var(--white); font-size: 13px; font-weight: 600; }
+    .user-role { color: rgba(255,255,255,.4); font-size: 11.5px; font-weight: 400; }
+
+    /* ========================================
+       CONTENT AREA
+       ======================================== */
+    .content {
+      margin-left: var(--sidebar-width);
+      min-height: 100vh;
+      transition: margin-left var(--transition-slow);
+    }
+    .sidebar.collapsed ~ .content { margin-left: var(--sidebar-collapsed-width); }
+
+    /* ========================================
+       DEAL HEADER
+       ======================================== */
+    .deal-header {
+      background: var(--white);
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      padding: 24px 32px 0;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500; color: var(--grey);
+      cursor: pointer; margin-bottom: 16px;
+      transition: color var(--transition-fast);
+    }
+    .back-link:hover { color: var(--almost-black); }
+    .back-link .material-icons-outlined { font-size: 18px; }
+
+    .deal-title-row {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px; margin-bottom: 16px;
+    }
+    .deal-title-left { flex: 1; min-width: 300px; }
+    .deal-company {
+      font-size: 24px; font-weight: 700; color: var(--almost-black);
+      letter-spacing: -.3px; line-height: 1.2; margin-bottom: 2px;
+    }
+    .deal-project {
+      font-size: 14px; color: var(--dark-grey); font-weight: 400; margin-bottom: 12px;
+    }
+    .deal-meta {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .deal-value {
+      font-size: 22px; font-weight: 700; color: var(--almost-black); letter-spacing: -.3px;
+    }
+    .badge-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 12px; border-radius: var(--radius-pill);
+      font-size: 12px; font-weight: 600; white-space: nowrap;
+    }
+    .badge-red { background: rgba(200,42,42,.1); color: var(--red); }
+    .badge-blue { background: rgba(0,115,234,.1); color: var(--monday-blue); }
+    .badge-green { background: rgba(0,202,114,.1); color: var(--monday-green); }
+    .badge-yellow { background: rgba(255,203,0,.15); color: #b8910a; }
+    .badge-grey { background: rgba(0,0,0,.06); color: var(--dark-grey); }
+    .badge-orange { background: rgba(255,117,117,.1); color: var(--monday-orange); }
+
+    .deal-title-actions {
+      display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--radius-card);
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: all var(--transition-fast);
+    }
+    .btn-primary {
+      background: var(--red); color: var(--white);
+    }
+    .btn-primary:hover { background: #b02424; }
+    .btn-outline {
+      background: var(--white); color: var(--almost-black);
+      border: 1px solid var(--light-grey);
+    }
+    .btn-outline:hover { background: var(--whitesmoke); border-color: var(--grey); }
+    .btn-accent {
+      background: var(--monday-blue); color: var(--white);
+    }
+    .btn-accent:hover { background: #005fbd; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .btn .material-icons-outlined { font-size: 16px; }
+
+    /* ========================================
+       PIPELINE PROGRESS STEPPER
+       ======================================== */
+    .pipeline-stepper {
+      display: flex; align-items: center; gap: 0;
+      padding: 20px 0 24px; overflow-x: auto;
+    }
+    .stepper-step {
+      display: flex; align-items: center; gap: 0; white-space: nowrap;
+    }
+    .stepper-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--light-grey);
+      background: var(--white);
+      flex-shrink: 0; position: relative; z-index: 2;
+      transition: all var(--transition-fast);
+    }
+    .stepper-dot.completed {
+      background: var(--almost-black); border-color: var(--almost-black);
+    }
+    .stepper-dot.current {
+      background: var(--red); border-color: var(--red);
+      box-shadow: 0 0 0 4px rgba(200,42,42,.15);
+    }
+    .stepper-line {
+      width: 60px; height: 2px; background: var(--light-grey); flex-shrink: 0;
+    }
+    .stepper-line.completed { background: var(--almost-black); }
+    .stepper-label {
+      font-size: 11px; font-weight: 500; color: var(--grey);
+      position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+      white-space: nowrap;
+    }
+    .stepper-dot.completed .stepper-label { color: var(--almost-black); }
+    .stepper-dot.current .stepper-label { color: var(--red); font-weight: 700; }
+
+    /* ========================================
+       MAIN LAYOUT: LEFT TABS + RIGHT SIDEBAR
+       ======================================== */
+    .deal-body {
+      display: flex; gap: 0;
+      padding: 0 32px 32px;
+      margin-top: 24px;
+    }
+    .deal-left {
+      flex: 0 0 65%; max-width: 65%;
+      padding-right: 24px;
+    }
+    .deal-right {
+      flex: 0 0 35%; max-width: 35%;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    /* ========================================
+       TABS
+       ======================================== */
+    .tabs-nav {
+      display: flex; gap: 0; border-bottom: 1px solid var(--light-grey);
+      margin-bottom: 24px; overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 10px 18px; font-family: inherit;
+      font-size: 13px; font-weight: 500; color: var(--grey);
+      background: none; border: none; cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--almost-black); }
+    .tab-btn.active {
+      color: var(--almost-black); font-weight: 700;
+      border-bottom-color: var(--red);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ========================================
+       CARD
+       ======================================== */
+    .card {
+      background: var(--white); border-radius: var(--radius-card);
+      box-shadow: var(--shadow-sm); padding: 20px;
+    }
+    .card + .card { margin-top: 16px; }
+    .card-title {
+      font-size: 14px; font-weight: 700; color: var(--almost-black);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .material-icons-outlined { font-size: 18px; color: var(--grey); }
+
+    /* ========================================
+       RESUMO TAB
+       ======================================== */
+    .field-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field-group.full { grid-column: 1 / -1; }
+    .field-label {
+      font-size: 11.5px; font-weight: 600; color: var(--grey);
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+    .field-value {
+      font-size: 14px; color: var(--almost-black); font-weight: 500;
+    }
+    .field-value.editable {
+      padding: 6px 10px; border: 1px solid var(--light-grey);
+      border-radius: 6px; background: var(--whitesmoke);
+    }
+    .field-avatar {
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .avatar-sm {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--white); flex-shrink: 0;
+    }
+    .avatar-pink { background: linear-gradient(135deg, #e44258, #ff7575); }
+    .avatar-blue { background: linear-gradient(135deg, #0073ea, #6161ff); }
+    .prob-bar-wrap {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .prob-bar {
+      flex: 1; height: 8px; background: rgba(0,0,0,.06);
+      border-radius: 999px; overflow: hidden;
+    }
+    .prob-bar-fill {
+      height: 100%; border-radius: 999px;
+      background: var(--monday-green);
+      transition: width var(--transition-slow);
+    }
+    .prob-pct { font-size: 14px; font-weight: 700; color: var(--almost-black); }
+    .obs-text {
+      width: 100%; min-height: 80px; padding: 10px 12px;
+      border: 1px solid var(--light-grey); border-radius: 6px;
+      background: var(--whitesmoke); font-family: inherit;
+      font-size: 13px; color: var(--almost-black); line-height: 1.6;
+      resize: vertical;
+    }
+
+    /* ========================================
+       TABLE STYLES
+       ======================================== */
+    .data-table {
+      width: 100%; border-collapse: collapse;
+    }
+    .data-table th {
+      text-align: left; font-size: 11px; font-weight: 600;
+      color: var(--grey); text-transform: uppercase; letter-spacing: .4px;
+      padding: 8px 12px; border-bottom: 1px solid var(--light-grey);
+    }
+    .data-table td {
+      padding: 10px 12px; font-size: 13px; color: var(--almost-black);
+      border-bottom: 1px solid rgba(0,0,0,.04);
+      vertical-align: middle;
+    }
+    .data-table tr:hover td { background: rgba(0,0,0,.015); }
+    .data-table .actions-cell {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .icon-btn {
+      width: 30px; height: 30px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      border: none; background: none; cursor: pointer;
+      color: var(--grey); transition: all var(--transition-fast);
+    }
+    .icon-btn:hover { background: var(--whitesmoke); color: var(--almost-black); }
+
+    /* ========================================
+       ATIVIDADES TIMELINE
+       ======================================== */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .timeline-item {
+      display: flex; gap: 16px; padding: 16px 0;
+      border-bottom: 1px solid rgba(0,0,0,.04);
+      position: relative;
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-date {
+      flex: 0 0 80px; font-size: 12px; font-weight: 600;
+      color: var(--grey); padding-top: 2px;
+    }
+    .timeline-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 16px;
+    }
+    .timeline-icon.call { background: rgba(0,115,234,.1); color: var(--monday-blue); }
+    .timeline-icon.email { background: rgba(97,97,255,.1); color: var(--monday-purple); }
+    .timeline-icon.meeting { background: rgba(0,202,114,.1); color: var(--monday-green); }
+    .timeline-icon.note { background: rgba(255,203,0,.15); color: #b8910a; }
+    .timeline-content { flex: 1; }
+    .timeline-meta {
+      font-size: 12px; color: var(--grey); margin-bottom: 4px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .timeline-meta strong { color: var(--dark-grey); font-weight: 600; }
+    .timeline-text { font-size: 13px; color: var(--almost-black); line-height: 1.5; }
+
+    /* Activity dropdown */
+    .dropdown-wrap { position: relative; display: inline-block; }
+    .dropdown-menu {
+      display: none; position: absolute; top: 100%; left: 0;
+      background: var(--white); border: 1px solid var(--light-grey);
+      border-radius: var(--radius-card); box-shadow: var(--shadow-md);
+      min-width: 160px; z-index: 50; padding: 4px 0;
+      margin-top: 4px;
+    }
+    .dropdown-menu.open { display: block; }
+    .dropdown-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; font-size: 13px; color: var(--almost-black);
+      cursor: pointer; transition: background var(--transition-fast);
+    }
+    .dropdown-item:hover { background: var(--whitesmoke); }
+
+    /* ========================================
+       SCORES TAB
+       ======================================== */
+    .score-card {
+      background: var(--white); border-radius: var(--radius-card);
+      box-shadow: var(--shadow-sm); padding: 20px;
+    }
+    .score-card + .score-card { margin-top: 16px; }
+    .score-header {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
+    }
+    .score-circle {
+      width: 72px; height: 72px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; position: relative;
+    }
+    .score-circle svg { width: 72px; height: 72px; transform: rotate(-90deg); }
+    .score-circle circle {
+      fill: none; stroke-width: 5; cx: 36; cy: 36; r: 30;
+    }
+    .score-circle .bg { stroke: rgba(0,0,0,.06); }
+    .score-circle .fill { stroke-linecap: round; transition: stroke-dashoffset .8s ease; }
+    .score-circle .fill.green { stroke: var(--monday-green); }
+    .score-circle .fill.yellow { stroke: var(--monday-yellow); }
+    .score-circle .fill.red { stroke: var(--monday-red); }
+    .score-number {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: var(--almost-black);
+    }
+    .score-info { flex: 1; }
+    .score-title { font-size: 15px; font-weight: 700; color: var(--almost-black); margin-bottom: 2px; }
+    .score-desc { font-size: 12px; color: var(--grey); }
+    .score-breakdown {
+      display: flex; flex-direction: column; gap: 6px;
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,.04);
+    }
+    .score-factor {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: var(--dark-grey);
+    }
+    .score-factor-val { font-weight: 600; color: var(--monday-green); }
+
+    /* ========================================
+       RIGHT SIDEBAR CARDS
+       ======================================== */
+    .right-card {
+      background: var(--white); border-radius: var(--radius-card);
+      box-shadow: var(--shadow-sm); padding: 16px;
+    }
+    .right-card-title {
+      font-size: 12px; font-weight: 700; color: var(--grey);
+      text-transform: uppercase; letter-spacing: .4px; margin-bottom: 12px;
+    }
+
+    /* Next action card */
+    .next-action {
+      border-left: 3px solid var(--monday-yellow);
+    }
+    .next-action-text {
+      font-size: 14px; font-weight: 600; color: var(--almost-black);
+      margin-bottom: 4px;
+    }
+    .next-action-reason {
+      font-size: 12px; color: var(--grey); margin-bottom: 12px;
+    }
+
+    /* Checklist */
+    .checklist { display: flex; flex-direction: column; gap: 8px; }
+    .check-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 13px; color: var(--almost-black);
+    }
+    .check-item.done { color: var(--grey); }
+    .check-icon { flex-shrink: 0; font-size: 18px; margin-top: -1px; }
+    .check-item.done .check-icon { color: var(--monday-green); }
+    .check-item.pending .check-icon { color: var(--light-grey); }
+    .check-progress {
+      margin-top: 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .check-progress-bar {
+      flex: 1; height: 6px; background: rgba(0,0,0,.06);
+      border-radius: 999px; overflow: hidden;
+    }
+    .check-progress-fill {
+      height: 100%; border-radius: 999px; background: var(--monday-green);
+    }
+    .check-progress-text { font-size: 12px; font-weight: 600; color: var(--dark-grey); }
+
+    /* Mini score bars */
+    .mini-scores { display: flex; flex-direction: column; gap: 10px; }
+    .mini-score-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mini-score-label { font-size: 12px; font-weight: 700; color: var(--dark-grey); width: 24px; }
+    .mini-score-bar {
+      flex: 1; height: 8px; background: rgba(0,0,0,.06);
+      border-radius: 999px; overflow: hidden;
+    }
+    .mini-score-fill {
+      height: 100%; border-radius: 999px; background: var(--monday-green);
+    }
+    .mini-score-val { font-size: 12px; font-weight: 700; color: var(--almost-black); width: 28px; text-align: right; }
+
+    /* Quick info */
+    .quick-info { display: flex; flex-direction: column; gap: 10px; }
+    .quick-row {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .quick-label { font-size: 12px; color: var(--grey); }
+    .quick-value { font-size: 13px; font-weight: 600; color: var(--almost-black); }
+
+    /* ========================================
+       HISTORICO TAB
+       ======================================== */
+    .audit-event {
+      font-size: 12px; font-weight: 500;
+    }
+
+    /* ========================================
+       MOBILE OVERLAY
+       ======================================== */
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 95;
+      opacity: 0; transition: opacity var(--transition-base);
+    }
+    .sidebar-overlay.visible { opacity: 1; }
+    .mobile-menu-btn {
+      display: none; width: 36px; height: 36px;
+      align-items: center; justify-content: center;
+      border: none; background: none; cursor: pointer;
+      border-radius: var(--radius-card);
+    }
+    .mobile-menu-btn .material-icons-outlined { font-size: 24px; color: var(--dark-grey); }
+
+    /* ========================================
+       RESPONSIVE
+       ======================================== */
+    @media (max-width: 1100px) {
+      .deal-body { flex-direction: column; }
+      .deal-left { flex: 1; max-width: 100%; padding-right: 0; margin-bottom: 24px; }
+      .deal-right { flex: 1; max-width: 100%; flex-direction: row; flex-wrap: wrap; }
+      .deal-right .right-card { flex: 1; min-width: 260px; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); width: var(--sidebar-width) !important; }
+      .sidebar.mobile-open { transform: translateX(0); }
+      .sidebar-toggle { display: none; }
+      .sidebar-overlay { display: block; }
+      .mobile-menu-btn { display: flex; }
+      .content { margin-left: 0 !important; }
+      .deal-header { padding: 16px 16px 0; }
+      .deal-body { padding: 0 16px 24px; }
+      .field-grid { grid-template-columns: 1fr; }
+      .pipeline-stepper { padding: 12px 0 16px; }
+      .deal-title-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ====================================
+       SIDEBAR
+       ==================================== -->
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Recolher menu">
+      <span class="material-icons-outlined">chevron_left</span>
+    </button>
+
+    <div class="sidebar-logo">
+      <div class="logo-icon"><span>A</span></div>
+      <span class="logo-text">ARV CRM</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">dashboard</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a class="nav-item expanded" href="#" onclick="toggleSub(event, 'pipeline-sub')">
+        <span class="material-icons-outlined">view_kanban</span>
+        <span class="nav-label">Pipeline</span>
+        <span class="material-icons-outlined expand-arrow">expand_more</span>
+      </a>
+      <div class="nav-sub open" id="pipeline-sub">
+        <a class="nav-sub-item" href="#">
+          <span class="sub-dot"></span>
+          <span class="nav-label">Pre Vendas</span>
+        </a>
+        <a class="nav-sub-item active" href="#">
+          <span class="sub-dot"></span>
+          <span class="nav-label">Vendas</span>
+        </a>
+      </div>
+
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">business</span>
+        <span class="nav-label">Empresas</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">contacts</span>
+        <span class="nav-label">Contatos</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">description</span>
+        <span class="nav-label">Propostas & Orcamentos</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">event</span>
+        <span class="nav-label">Visitas</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">trending_up</span>
+        <span class="nav-label">Metas de Vendas</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">analytics</span>
+        <span class="nav-label">Dashboard de Funil</span>
+      </a>
+
+      <div class="nav-separator"></div>
+
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">settings</span>
+        <span class="nav-label">Configuracoes</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">B</div>
+        <div class="user-info">
+          <div class="user-name">Bruno</div>
+          <div class="user-role">Administrador</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ====================================
+       CONTENT
+       ==================================== -->
+  <main class="content">
+
+    <!-- ====================================
+         DEAL HEADER
+         ==================================== -->
+    <div class="deal-header">
+      <!-- Mobile menu button -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">
+          <span class="material-icons-outlined">menu</span>
+        </button>
+      </div>
+
+      <a class="back-link" href="#">
+        <span class="material-icons-outlined">arrow_back</span>
+        Pipeline
+      </a>
+
+      <div class="deal-title-row">
+        <div class="deal-title-left">
+          <div class="deal-company">AutoParts Brasil</div>
+          <div class="deal-project">Projeto: Celula Robotica</div>
+          <div class="deal-meta">
+            <span class="deal-value">R$ 680.000</span>
+            <span class="badge-pill badge-red">&#128308; Quente</span>
+            <span class="badge-pill badge-blue">Dev. Proposta</span>
+          </div>
+        </div>
+        <div class="deal-title-actions">
+          <button class="btn btn-outline btn-sm">
+            <span class="material-icons-outlined">edit</span>
+            Editar
+          </button>
+          <button class="btn btn-outline btn-sm">
+            <span class="material-icons-outlined">more_horiz</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pipeline Stepper -->
+      <div class="pipeline-stepper">
+        <!-- Step 1: Qualif. Oport. — completed -->
+        <div class="stepper-step">
+          <div class="stepper-dot completed">
+            <span class="stepper-label">Qualif. Oport.</span>
+          </div>
+        </div>
+        <div class="stepper-line completed"></div>
+
+        <!-- Step 2: Analise Interna — completed -->
+        <div class="stepper-step">
+          <div class="stepper-dot completed">
+            <span class="stepper-label">Analise Interna</span>
+          </div>
+        </div>
+        <div class="stepper-line completed"></div>
+
+        <!-- Step 3: Dev. Proposta — current -->
+        <div class="stepper-step">
+          <div class="stepper-dot current">
+            <span class="stepper-label">Dev. Proposta</span>
+          </div>
+        </div>
+        <div class="stepper-line"></div>
+
+        <!-- Step 4: Proposta Enviada — future -->
+        <div class="stepper-step">
+          <div class="stepper-dot">
+            <span class="stepper-label">Proposta Enviada</span>
+          </div>
+        </div>
+        <div class="stepper-line"></div>
+
+        <!-- Step 5: Negociacao — future -->
+        <div class="stepper-step">
+          <div class="stepper-dot">
+            <span class="stepper-label">Negociacao</span>
+          </div>
+        </div>
+        <div class="stepper-line"></div>
+
+        <!-- Step 6: Fechamento — future -->
+        <div class="stepper-step">
+          <div class="stepper-dot">
+            <span class="stepper-label">Fechamento</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================
+         DEAL BODY: LEFT TABS + RIGHT SIDEBAR
+         ==================================== -->
+    <div class="deal-body">
+
+      <!-- LEFT SIDE -->
+      <div class="deal-left">
+        <!-- Tab Navigation -->
+        <div class="tabs-nav">
+          <button class="tab-btn active" data-tab="resumo">Resumo</button>
+          <button class="tab-btn" data-tab="empresa">Empresa</button>
+          <button class="tab-btn" data-tab="contatos">Contatos</button>
+          <button class="tab-btn" data-tab="atividades">Atividades</button>
+          <button class="tab-btn" data-tab="propostas">Propostas</button>
+          <button class="tab-btn" data-tab="scores">Scores</button>
+          <button class="tab-btn" data-tab="historico">Historico</button>
+        </div>
+
+        <!-- ========== TAB: RESUMO ========== -->
+        <div class="tab-panel active" id="tab-resumo">
+          <div class="card">
+            <div class="card-title">
+              <span class="material-icons-outlined">summarize</span>
+              Resumo da Oportunidade
+            </div>
+            <div class="field-grid">
+              <div class="field-group">
+                <div class="field-label">Resp. Comercial</div>
+                <div class="field-value">
+                  <span class="field-avatar">
+                    <span class="avatar-sm avatar-pink">MC</span>
+                    Mariana Constantinou
+                  </span>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Resp. Tecnico</div>
+                <div class="field-value">
+                  <span class="field-avatar">
+                    <span class="avatar-sm avatar-blue">DA</span>
+                    David Alves
+                  </span>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Tipo de Entrega</div>
+                <div class="field-value">
+                  <span class="badge-pill badge-grey">Projeto Completo</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Valor Estimado</div>
+                <div class="field-value editable">R$ 680.000</div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Valor Projetado</div>
+                <div class="field-value">R$ 620.000</div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Probabilidade</div>
+                <div class="field-value">
+                  <div class="prob-bar-wrap">
+                    <div class="prob-bar">
+                      <div class="prob-bar-fill" style="width:60%"></div>
+                    </div>
+                    <span class="prob-pct">60%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Data Prevista Fechamento</div>
+                <div class="field-value">15/04/2026</div>
+              </div>
+              <div class="field-group full">
+                <div class="field-label">Observacoes</div>
+                <textarea class="obs-text" readonly>Cliente solicitou visita tecnica na planta de Campinas para validacao do layout. Necessario levar engenheiro de aplicacao.</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== TAB: EMPRESA ========== -->
+        <div class="tab-panel" id="tab-empresa">
+          <div class="card">
+            <div class="card-title">
+              <span class="material-icons-outlined">business</span>
+              Dados da Empresa
+            </div>
+            <div class="field-grid">
+              <div class="field-group">
+                <div class="field-label">Nome Fantasia</div>
+                <div class="field-value">AutoParts Brasil</div>
+              </div>
+              <div class="field-group full">
+                <div class="field-label">Razao Social</div>
+                <div class="field-value">AutoParts do Brasil Industria e Comercio Ltda.</div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">CNPJ</div>
+                <div class="field-value" style="display:flex;align-items:center;gap:10px;">
+                  12.345.678/0001-90
+                  <button class="btn btn-accent btn-sm">Enriquecer CNPJ</button>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Segmento</div>
+                <div class="field-value"><span class="badge-pill badge-blue">Automotivo</span></div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">N. Funcionarios</div>
+                <div class="field-value"><span class="badge-pill badge-grey">500-1000</span></div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">N. Plantas</div>
+                <div class="field-value">3</div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Distancia ARV</div>
+                <div class="field-value">85 km</div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Cidade</div>
+                <div class="field-value">Campinas</div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Estado</div>
+                <div class="field-value">SP</div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">CEP</div>
+                <div class="field-value">13050-100</div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Telefone</div>
+                <div class="field-value">(19) 3232-5500</div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Site</div>
+                <div class="field-value">
+                  <a href="#" style="color:var(--monday-blue);text-decoration:underline;">www.autopartsbrasil.com.br</a>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Status da Conta</div>
+                <div class="field-value"><span class="badge-pill badge-green">Cliente com Oportunidade</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== TAB: CONTATOS ========== -->
+        <div class="tab-panel" id="tab-contatos">
+          <div class="card" style="overflow-x:auto;">
+            <div class="card-title">
+              <span class="material-icons-outlined">contacts</span>
+              Contatos Vinculados
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Cargo</th>
+                  <th>Depart.</th>
+                  <th>Influencia</th>
+                  <th>WhatsApp</th>
+                  <th>E-mail</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight:600;">Carlos Silva</td>
+                  <td>Gerente Eng.</td>
+                  <td>Engenharia</td>
+                  <td><span class="badge-pill badge-red">&#128308; Decisor</span></td>
+                  <td>(19) 99887-6655</td>
+                  <td>carlos@autopbr.com</td>
+                  <td><button class="icon-btn"><span class="material-icons-outlined" style="font-size:16px;">edit</span></button></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Ana Souza</td>
+                  <td>Coord. Compras</td>
+                  <td>Suprimentos</td>
+                  <td><span class="badge-pill badge-yellow">&#128993; Influenciador</span></td>
+                  <td>(19) 99776-5544</td>
+                  <td>ana@autopbr.com</td>
+                  <td><button class="icon-btn"><span class="material-icons-outlined" style="font-size:16px;">edit</span></button></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Roberto Lima</td>
+                  <td>Eng. Processo</td>
+                  <td>Engenharia</td>
+                  <td><span class="badge-pill badge-grey">&#9898; Operacional</span></td>
+                  <td>(19) 99665-4433</td>
+                  <td>roberto@autopbr.com</td>
+                  <td><button class="icon-btn"><span class="material-icons-outlined" style="font-size:16px;">edit</span></button></td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="margin-top:16px;">
+              <button class="btn btn-outline btn-sm">
+                <span class="material-icons-outlined">add</span>
+                Adicionar Contato
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== TAB: ATIVIDADES ========== -->
+        <div class="tab-panel" id="tab-atividades">
+          <div class="card">
+            <div class="card-title">
+              <span class="material-icons-outlined">timeline</span>
+              Historico de Atividades
+            </div>
+            <div class="timeline">
+              <div class="timeline-item">
+                <div class="timeline-date">14/03/2026</div>
+                <div class="timeline-icon call">
+                  <span class="material-icons-outlined">phone</span>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-meta">
+                    <strong>Ligacao</strong>
+                    <span>|</span>
+                    <span>Mariana</span>
+                  </div>
+                  <div class="timeline-text">Alinhamento sobre escopo tecnico. Cliente confirma interesse mas precisa de visita na planta.</div>
+                </div>
+              </div>
+
+              <div class="timeline-item">
+                <div class="timeline-date">10/03/2026</div>
+                <div class="timeline-icon email">
+                  <span class="material-icons-outlined">email</span>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-meta">
+                    <strong>E-mail</strong>
+                    <span>|</span>
+                    <span>Mariana</span>
+                  </div>
+                  <div class="timeline-text">Envio de material tecnico - catalogo de celulas roboticas</div>
+                </div>
+              </div>
+
+              <div class="timeline-item">
+                <div class="timeline-date">05/03/2026</div>
+                <div class="timeline-icon meeting">
+                  <span class="material-icons-outlined">groups</span>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-meta">
+                    <strong>Reuniao</strong>
+                    <span>|</span>
+                    <span>Mariana + David</span>
+                  </div>
+                  <div class="timeline-text">Reuniao de kickoff tecnico. Levantamento de requisitos.</div>
+                </div>
+              </div>
+
+              <div class="timeline-item">
+                <div class="timeline-date">01/03/2026</div>
+                <div class="timeline-icon note">
+                  <span class="material-icons-outlined">description</span>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-meta">
+                    <strong>Nota</strong>
+                    <span>|</span>
+                    <span>Sistema</span>
+                  </div>
+                  <div class="timeline-text">Lead convertido em oportunidade. Score: LS:78, ST:91, SO:85</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:20px;">
+              <div class="dropdown-wrap">
+                <button class="btn btn-primary btn-sm" onclick="toggleDropdown('activityDropdown')">
+                  <span class="material-icons-outlined">add</span>
+                  Nova Atividade
+                  <span class="material-icons-outlined" style="font-size:14px;margin-left:2px;">expand_more</span>
+                </button>
+                <div class="dropdown-menu" id="activityDropdown">
+                  <div class="dropdown-item"><span class="material-icons-outlined" style="font-size:16px;">phone</span> Ligacao</div>
+                  <div class="dropdown-item"><span class="material-icons-outlined" style="font-size:16px;">email</span> E-mail</div>
+                  <div class="dropdown-item"><span class="material-icons-outlined" style="font-size:16px;">groups</span> Reuniao</div>
+                  <div class="dropdown-item"><span class="material-icons-outlined" style="font-size:16px;">description</span> Nota</div>
+                  <div class="dropdown-item"><span class="material-icons-outlined" style="font-size:16px;">schedule</span> Follow-up</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== TAB: PROPOSTAS ========== -->
+        <div class="tab-panel" id="tab-propostas">
+          <div class="card" style="overflow-x:auto;">
+            <div class="card-title">
+              <span class="material-icons-outlined">request_quote</span>
+              Propostas e Orcamentos
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Revisao</th>
+                  <th>Valor</th>
+                  <th>Status</th>
+                  <th>Data</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight:600;">ORC-2024-047</td>
+                  <td>v2</td>
+                  <td style="font-weight:600;">R$ 680.000</td>
+                  <td><span class="badge-pill badge-yellow">&#128993; Em elaboracao</span></td>
+                  <td>12/03/2026</td>
+                  <td>
+                    <button class="icon-btn" title="Ver proposta">
+                      <span class="material-icons-outlined" style="font-size:16px;">visibility</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">ORC-2024-047</td>
+                  <td>v1</td>
+                  <td>R$ 720.000</td>
+                  <td><span class="badge-pill badge-grey">&#9898; Substituida</span></td>
+                  <td>06/03/2026</td>
+                  <td>
+                    <button class="icon-btn" title="Ver proposta">
+                      <span class="material-icons-outlined" style="font-size:16px;">visibility</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="margin-top:16px;">
+              <button class="btn btn-outline btn-sm">
+                <span class="material-icons-outlined">add</span>
+                Nova Proposta
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== TAB: SCORES ========== -->
+        <div class="tab-panel" id="tab-scores">
+
+          <!-- Lead Score -->
+          <div class="score-card">
+            <div class="score-header">
+              <div class="score-circle">
+                <svg viewBox="0 0 72 72">
+                  <circle class="bg" cx="36" cy="36" r="30"/>
+                  <circle class="fill green" cx="36" cy="36" r="30"
+                    stroke-dasharray="188.5" stroke-dashoffset="41.5"/>
+                </svg>
+                <span class="score-number">78</span>
+              </div>
+              <div class="score-info">
+                <div class="score-title">Lead Score</div>
+                <div class="score-desc">Lead bem qualificado</div>
+              </div>
+            </div>
+            <div class="score-breakdown">
+              <div class="score-factor"><span>Segmento</span><span class="score-factor-val">+15</span></div>
+              <div class="score-factor"><span>Funcionarios</span><span class="score-factor-val">+12</span></div>
+              <div class="score-factor"><span>Plantas</span><span class="score-factor-val">+8</span></div>
+              <div class="score-factor"><span>Distancia</span><span class="score-factor-val">+5</span></div>
+              <div class="score-factor"><span>Engajamento</span><span class="score-factor-val">+10</span></div>
+              <div class="score-factor"><span>Historico</span><span class="score-factor-val">+8</span></div>
+              <div class="score-factor"><span>Outros</span><span class="score-factor-val">+20</span></div>
+            </div>
+          </div>
+
+          <!-- Score Tecnico -->
+          <div class="score-card">
+            <div class="score-header">
+              <div class="score-circle">
+                <svg viewBox="0 0 72 72">
+                  <circle class="bg" cx="36" cy="36" r="30"/>
+                  <circle class="fill green" cx="36" cy="36" r="30"
+                    stroke-dasharray="188.5" stroke-dashoffset="17"/>
+                </svg>
+                <span class="score-number">91</span>
+              </div>
+              <div class="score-info">
+                <div class="score-title">Score Tecnico</div>
+                <div class="score-desc">Alta aderencia tecnica</div>
+              </div>
+            </div>
+            <div class="score-breakdown">
+              <div class="score-factor"><span>Aplicacao robotica compativel?</span><span class="score-factor-val">+12</span></div>
+              <div class="score-factor"><span>Infraestrutura adequada?</span><span class="score-factor-val">+10</span></div>
+              <div class="score-factor"><span>Equipe tecnica qualificada?</span><span class="score-factor-val">+10</span></div>
+              <div class="score-factor"><span>Escopo bem definido?</span><span class="score-factor-val">+11</span></div>
+              <div class="score-factor"><span>Prazo realista?</span><span class="score-factor-val">+10</span></div>
+              <div class="score-factor"><span>Orcamento compativel?</span><span class="score-factor-val">+9</span></div>
+              <div class="score-factor"><span>Integracao com sistemas?</span><span class="score-factor-val">+10</span></div>
+              <div class="score-factor"><span>Normas de seguranca?</span><span class="score-factor-val">+10</span></div>
+              <div class="score-factor"><span>Suporte pos-venda?</span><span class="score-factor-val">+9</span></div>
+            </div>
+          </div>
+
+          <!-- Score Oportunidade -->
+          <div class="score-card">
+            <div class="score-header">
+              <div class="score-circle">
+                <svg viewBox="0 0 72 72">
+                  <circle class="bg" cx="36" cy="36" r="30"/>
+                  <circle class="fill green" cx="36" cy="36" r="30"
+                    stroke-dasharray="188.5" stroke-dashoffset="28.3"/>
+                </svg>
+                <span class="score-number">85</span>
+              </div>
+              <div class="score-info">
+                <div class="score-title">Score Oportunidade</div>
+                <div class="score-desc">Oportunidade forte</div>
+              </div>
+            </div>
+            <div class="score-breakdown">
+              <div class="score-factor"><span>Budget aprovado?</span><span class="score-factor-val">+10</span></div>
+              <div class="score-factor"><span>Decisor identificado?</span><span class="score-factor-val">+12</span></div>
+              <div class="score-factor"><span>Necessidade clara?</span><span class="score-factor-val">+10</span></div>
+              <div class="score-factor"><span>Timeline definida?</span><span class="score-factor-val">+9</span></div>
+              <div class="score-factor"><span>Concorrencia mapeada?</span><span class="score-factor-val">+8</span></div>
+              <div class="score-factor"><span>Sponsor interno?</span><span class="score-factor-val">+10</span></div>
+              <div class="score-factor"><span>Criterios de decisao?</span><span class="score-factor-val">+9</span></div>
+              <div class="score-factor"><span>Proximo passo claro?</span><span class="score-factor-val">+9</span></div>
+              <div class="score-factor"><span>Engajamento do cliente?</span><span class="score-factor-val">+8</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <button class="btn btn-outline">
+              <span class="material-icons-outlined">refresh</span>
+              Recalcular Scores
+            </button>
+          </div>
+        </div>
+
+        <!-- ========== TAB: HISTORICO ========== -->
+        <div class="tab-panel" id="tab-historico">
+          <div class="card" style="overflow-x:auto;">
+            <div class="card-title">
+              <span class="material-icons-outlined">history</span>
+              Trilha de Auditoria
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Evento</th>
+                  <th>De</th>
+                  <th>Para</th>
+                  <th>Usuario</th>
+                  <th>Tempo na etapa</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>12/03</td>
+                  <td class="audit-event"><span class="badge-pill badge-blue">Mudanca de etapa</span></td>
+                  <td>Analise Interna</td>
+                  <td style="font-weight:600;">Dev. Proposta</td>
+                  <td>Mariana</td>
+                  <td>8 dias</td>
+                </tr>
+                <tr>
+                  <td>04/03</td>
+                  <td class="audit-event"><span class="badge-pill badge-blue">Mudanca de etapa</span></td>
+                  <td>Qualif. Oport.</td>
+                  <td style="font-weight:600;">Analise Interna</td>
+                  <td>Mariana</td>
+                  <td>5 dias</td>
+                </tr>
+                <tr>
+                  <td>27/02</td>
+                  <td class="audit-event"><span class="badge-pill badge-green">Criacao</span></td>
+                  <td>--</td>
+                  <td style="font-weight:600;">Qualif. Oport.</td>
+                  <td>Sistema</td>
+                  <td>--</td>
+                </tr>
+                <tr>
+                  <td>27/02</td>
+                  <td class="audit-event"><span class="badge-pill badge-orange">Conversao de Lead</span></td>
+                  <td>Lead #L-0847</td>
+                  <td style="font-weight:600;">Oportunidade</td>
+                  <td>Sistema</td>
+                  <td>--</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /deal-left -->
+
+      <!-- ====================================
+           RIGHT SIDEBAR
+           ==================================== -->
+      <div class="deal-right">
+
+        <!-- Next Action -->
+        <div class="right-card next-action">
+          <div class="right-card-title">Proxima Acao Recomendada</div>
+          <div class="next-action-text">Agendar visita tecnica na planta de Campinas</div>
+          <div class="next-action-reason">Baseado no Score Tecnico (91) e fase atual</div>
+          <button class="btn btn-primary btn-sm">
+            <span class="material-icons-outlined">add_task</span>
+            Criar Atividade
+          </button>
+        </div>
+
+        <!-- Phase Checklist -->
+        <div class="right-card">
+          <div class="right-card-title">Checklist da Fase (Dev. Proposta)</div>
+          <div class="checklist">
+            <div class="check-item done">
+              <span class="material-icons-outlined check-icon">check_circle</span>
+              <span>Comite interno aprovou escopo</span>
+            </div>
+            <div class="check-item done">
+              <span class="material-icons-outlined check-icon">check_circle</span>
+              <span>Requisitos tecnicos levantados</span>
+            </div>
+            <div class="check-item done">
+              <span class="material-icons-outlined check-icon">check_circle</span>
+              <span>Engenheiro de aplicacao designado</span>
+            </div>
+            <div class="check-item pending">
+              <span class="material-icons-outlined check-icon">radio_button_unchecked</span>
+              <span>Visita tecnica realizada</span>
+            </div>
+            <div class="check-item pending">
+              <span class="material-icons-outlined check-icon">radio_button_unchecked</span>
+              <span>Proposta finalizada e revisada</span>
+            </div>
+          </div>
+          <div class="check-progress">
+            <div class="check-progress-bar">
+              <div class="check-progress-fill" style="width:60%"></div>
+            </div>
+            <span class="check-progress-text">3/5 (60%)</span>
+          </div>
+        </div>
+
+        <!-- Scores Summary -->
+        <div class="right-card">
+          <div class="right-card-title">Scores Resumo</div>
+          <div class="mini-scores">
+            <div class="mini-score-row">
+              <span class="mini-score-label">LS</span>
+              <div class="mini-score-bar">
+                <div class="mini-score-fill" style="width:78%"></div>
+              </div>
+              <span class="mini-score-val">78</span>
+            </div>
+            <div class="mini-score-row">
+              <span class="mini-score-label">ST</span>
+              <div class="mini-score-bar">
+                <div class="mini-score-fill" style="width:91%"></div>
+              </div>
+              <span class="mini-score-val">91</span>
+            </div>
+            <div class="mini-score-row">
+              <span class="mini-score-label">SO</span>
+              <div class="mini-score-bar">
+                <div class="mini-score-fill" style="width:85%"></div>
+              </div>
+              <span class="mini-score-val">85</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Info -->
+        <div class="right-card">
+          <div class="right-card-title">Informacoes Rapidas</div>
+          <div class="quick-info">
+            <div class="quick-row">
+              <span class="quick-label">Lead de Origem</span>
+              <span class="quick-value" style="color:var(--monday-blue);">L-0847</span>
+            </div>
+            <div class="quick-row">
+              <span class="quick-label">Data de Entrada</span>
+              <span class="quick-value">27/02/2026</span>
+            </div>
+            <div class="quick-row">
+              <span class="quick-label">Dias no funil</span>
+              <span class="quick-value">15 dias</span>
+            </div>
+            <div class="quick-row">
+              <span class="quick-label">Dias na etapa</span>
+              <span class="quick-value">6 dias</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /deal-right -->
+
+    </div><!-- /deal-body -->
+
+  </main>
+
+  <!-- ====================================
+       SCRIPTS
+       ==================================== -->
+  <script>
+    // Sidebar collapse
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
+    // Sub-navigation toggle
+    function toggleSub(e, id) {
+      e.preventDefault();
+      const sub = document.getElementById(id);
+      const item = e.currentTarget;
+      sub.classList.toggle('open');
+      item.classList.toggle('expanded');
+    }
+
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const overlay = document.getElementById('sidebarOverlay');
+    mobileMenuBtn.addEventListener('click', () => {
+      sidebar.classList.add('mobile-open');
+      overlay.classList.add('visible');
+    });
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('visible');
+    });
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Deactivate all
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        // Activate clicked
+        btn.classList.add('active');
+        const panel = document.getElementById('tab-' + btn.dataset.tab);
+        if (panel) panel.classList.add('active');
+      });
+    });
+
+    // Activity dropdown toggle
+    function toggleDropdown(id) {
+      const menu = document.getElementById(id);
+      menu.classList.toggle('open');
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown-wrap')) {
+        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+      }
+    });
+  </script>
+
+</body>
+</html>

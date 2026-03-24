@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "mcp__github__search_repositories",
+      "mcp__github__get_file_contents",
+      "Bash(docker-compose logs:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(docker-compose restart:*)"
+    ]
+  }
+}

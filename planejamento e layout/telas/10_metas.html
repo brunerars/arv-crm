@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARV CRM — Metas de Vendas</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+
+  <style>
+    /* ======== TOKENS ======== */
+    :root {
+      --almost-black: #111111;
+      --white: #ffffff;
+      --whitesmoke: #f5f5f5;
+      --dark-grey: #5d5d5d;
+      --grey: #9f9f9f;
+      --light-grey: #d1d1d1;
+      --red: #c82a2a;
+      --monday-purple: #6161ff;
+      --monday-blue: #0073ea;
+      --monday-green: #00ca72;
+      --monday-yellow: #ffcb00;
+      --monday-red: #e44258;
+      --monday-orange: #ff7575;
+      --sidebar-width: 260px;
+      --topbar-height: 60px;
+      --radius-card: 8px;
+      --radius-pill: 9999px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.1);
+      --transition-fast: .15s ease;
+      --transition-base: .25s ease;
+      --transition-slow: .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { font-size:14px; }
+    body {
+      font-family:'Inter Tight',-apple-system,BlinkMacSystemFont,sans-serif;
+      background:var(--whitesmoke); color:var(--almost-black);
+      line-height:1.5; overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* ======== SIDEBAR ======== */
+    .sidebar {
+      position:fixed; top:0; left:0; width:var(--sidebar-width); height:100vh;
+      background:var(--almost-black); display:flex; flex-direction:column;
+      z-index:100; overflow:hidden;
+    }
+    .sidebar-logo {
+      display:flex; align-items:center; gap:12px; padding:20px 20px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08); min-height:64px; flex-shrink:0;
+    }
+    .sidebar-logo .logo-icon {
+      width:32px; height:32px; background:var(--red); border-radius:var(--radius-card);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .sidebar-logo .logo-icon span { color:var(--white); font-weight:700; font-size:15px; }
+    .sidebar-logo .logo-text { color:var(--white); font-size:18px; font-weight:700; letter-spacing:-.3px; }
+    .sidebar-nav { flex:1; overflow-y:auto; overflow-x:hidden; padding:12px 0; }
+    .sidebar-nav::-webkit-scrollbar { width:4px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background:rgba(255,255,255,.15); border-radius:4px; }
+    .nav-item {
+      position:relative; display:flex; align-items:center; gap:14px; padding:10px 20px;
+      color:rgba(255,255,255,.6); text-decoration:none; font-size:13.5px; font-weight:500;
+      white-space:nowrap; cursor:pointer; transition:color var(--transition-fast),background var(--transition-fast);
+      border-left:3px solid transparent;
+    }
+    .nav-item:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.85); }
+    .nav-item.active { color:var(--white); border-left-color:var(--red); background:rgba(255,255,255,.04); }
+    .nav-item .material-icons-outlined { font-size:20px; flex-shrink:0; width:20px; text-align:center; }
+    .nav-item .expand-arrow { margin-left:auto; font-size:18px; transition:transform var(--transition-base); }
+    .nav-item.expanded .expand-arrow { transform:rotate(180deg); }
+    .nav-sub { max-height:0; overflow:hidden; transition:max-height var(--transition-slow); }
+    .nav-sub.open { max-height:120px; }
+    .nav-sub-item {
+      display:flex; align-items:center; padding:8px 20px 8px 57px;
+      color:rgba(255,255,255,.45); text-decoration:none; font-size:13px; font-weight:400;
+      white-space:nowrap; cursor:pointer; transition:color var(--transition-fast),background var(--transition-fast);
+      border-left:3px solid transparent;
+    }
+    .nav-sub-item:hover { color:rgba(255,255,255,.8); background:rgba(255,255,255,.04); }
+    .nav-sub-item .sub-dot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.3); margin-right:12px; flex-shrink:0; }
+    .nav-separator { height:1px; background:rgba(255,255,255,.08); margin:12px 20px; }
+    .sidebar-footer { flex-shrink:0; border-top:1px solid rgba(255,255,255,.08); padding:8px 0; }
+    .sidebar-user { display:flex; align-items:center; gap:12px; padding:12px 20px; }
+    .user-avatar {
+      width:34px; height:34px; border-radius:50%;
+      background:linear-gradient(135deg,var(--red),var(--monday-orange));
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      color:var(--white); font-size:13px; font-weight:600;
+    }
+    .user-name { color:var(--white); font-size:13px; font-weight:600; }
+    .user-role { color:rgba(255,255,255,.4); font-size:11.5px; }
+
+    /* ======== TOPBAR ======== */
+    .topbar {
+      position:fixed; top:0; left:var(--sidebar-width); right:0; height:var(--topbar-height);
+      background:var(--white); border-bottom:1px solid rgba(0,0,0,.06);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 32px; z-index:90; box-shadow:0 1px 2px rgba(0,0,0,.03);
+    }
+    .breadcrumb { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--grey); }
+    .breadcrumb strong { color:var(--almost-black); font-weight:600; }
+    .topbar-right { display:flex; align-items:center; gap:12px; }
+
+    /* Year selector */
+    .year-select {
+      height:34px; padding:0 12px; border:1px solid var(--light-grey); border-radius:var(--radius-card);
+      background:var(--white); font-family:inherit; font-size:13px; font-weight:600;
+      color:var(--almost-black); cursor:pointer; outline:none;
+    }
+    .year-select:focus { border-color:var(--monday-blue); box-shadow:0 0 0 3px rgba(0,115,234,.1); }
+
+    /* Toggle pills */
+    .toggle-pills {
+      display:flex; border:1px solid var(--light-grey); border-radius:var(--radius-pill); overflow:hidden;
+    }
+    .toggle-pill {
+      padding:6px 16px; font-size:12.5px; font-weight:500; cursor:pointer;
+      background:var(--white); color:var(--dark-grey); border:none; font-family:inherit;
+      transition:background var(--transition-fast),color var(--transition-fast);
+    }
+    .toggle-pill:not(:last-child) { border-right:1px solid var(--light-grey); }
+    .toggle-pill.active { background:var(--almost-black); color:var(--white); }
+    .toggle-pill:hover:not(.active) { background:var(--whitesmoke); }
+
+    /* Team filter */
+    .team-filter {
+      height:34px; padding:0 12px; border:1px solid var(--light-grey); border-radius:var(--radius-pill);
+      background:var(--white); font-family:inherit; font-size:12.5px; font-weight:500;
+      color:var(--dark-grey); cursor:pointer; outline:none;
+    }
+
+    /* ======== CONTENT ======== */
+    .content {
+      margin-left:var(--sidebar-width); margin-top:var(--topbar-height);
+      padding:32px; min-height:calc(100vh - var(--topbar-height));
+    }
+
+    /* ======== KPI CARDS ======== */
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:32px; }
+    .kpi-card {
+      background:var(--white); border-radius:var(--radius-card); padding:24px;
+      box-shadow:var(--shadow-sm); position:relative; overflow:hidden;
+      transition:box-shadow var(--transition-base),transform var(--transition-base);
+    }
+    .kpi-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+    .kpi-card .kpi-border {
+      position:absolute; top:0; left:0; width:100%; height:4px;
+    }
+    .kpi-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .kpi-label { font-size:12.5px; font-weight:500; color:var(--grey); text-transform:uppercase; letter-spacing:.4px; }
+    .kpi-icon {
+      width:40px; height:40px; border-radius:50%; display:flex;
+      align-items:center; justify-content:center;
+    }
+    .kpi-icon .material-icons-outlined { font-size:20px; }
+    .kpi-value { font-size:28px; font-weight:700; color:var(--almost-black); letter-spacing:-.5px; line-height:1.1; }
+    .kpi-sub { font-size:12px; color:var(--grey); margin-top:6px; }
+    .kpi-badge {
+      display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
+      border-radius:var(--radius-pill); font-size:11.5px; font-weight:600; margin-top:8px;
+    }
+    .kpi-badge.green { background:rgba(0,202,114,.1); color:var(--monday-green); }
+    .kpi-badge.yellow { background:rgba(255,203,0,.12); color:#b8920a; }
+    .kpi-badge .material-icons-outlined { font-size:14px; }
+
+    /* ======== SECTION ======== */
+    .section { margin-bottom:32px; }
+    .section-title {
+      font-size:18px; font-weight:700; color:var(--almost-black); margin-bottom:4px;
+    }
+    .section-subtitle { font-size:13px; color:var(--grey); margin-bottom:20px; }
+
+    /* ======== BAR CHART ======== */
+    .chart-card {
+      background:var(--white); border-radius:var(--radius-card); padding:28px;
+      box-shadow:var(--shadow-sm);
+    }
+    .chart-wrapper { display:flex; gap:0; align-items:flex-end; height:320px; position:relative; padding-left:80px; padding-bottom:40px; }
+    .y-axis {
+      position:absolute; left:0; top:0; bottom:40px; width:80px;
+      display:flex; flex-direction:column-reverse; justify-content:space-between;
+    }
+    .y-label { font-size:11px; color:var(--grey); text-align:right; padding-right:12px; }
+    .x-axis-line {
+      position:absolute; left:80px; right:0; height:1px; background:var(--whitesmoke);
+    }
+    .chart-bars {
+      display:flex; flex:1; align-items:flex-end; gap:0; height:100%;
+    }
+    .bar-group {
+      flex:1; display:flex; align-items:flex-end; justify-content:center; gap:4px;
+      height:100%; position:relative; padding:0 4px;
+    }
+    .bar-group:hover .bar-tooltip { opacity:1; transform:translateY(-4px); }
+    .bar {
+      width:20px; border-radius:4px 4px 0 0; position:relative;
+      transition:opacity var(--transition-fast);
+    }
+    .bar-meta {
+      background:var(--almost-black); opacity:.25;
+    }
+    .bar-real {
+      background:linear-gradient(to top,var(--monday-blue),var(--monday-green));
+    }
+    .bar-future {
+      background:transparent; border:2px dashed var(--light-grey); border-bottom:none;
+      opacity:.5;
+    }
+    .bar-current {
+      box-shadow:0 0 12px rgba(0,115,234,.3);
+    }
+    .bar-month {
+      position:absolute; bottom:-30px; left:50%; transform:translateX(-50%);
+      font-size:11px; color:var(--dark-grey); font-weight:500; white-space:nowrap;
+    }
+    .bar-group:nth-child(3) .bar-month { color:var(--monday-blue); font-weight:700; }
+    .bar-tooltip {
+      position:absolute; top:-48px; left:50%; transform:translateX(-50%) translateY(0);
+      background:var(--almost-black); color:var(--white); font-size:11px; padding:6px 10px;
+      border-radius:6px; white-space:nowrap; opacity:0; pointer-events:none;
+      transition:opacity var(--transition-fast),transform var(--transition-fast); z-index:5;
+    }
+    .bar-tooltip::after {
+      content:''; position:absolute; bottom:-4px; left:50%; transform:translateX(-50%);
+      border-left:5px solid transparent; border-right:5px solid transparent;
+      border-top:5px solid var(--almost-black);
+    }
+    .chart-legend {
+      display:flex; align-items:center; gap:24px; margin-top:20px; padding-left:80px;
+    }
+    .legend-item { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--dark-grey); }
+    .legend-swatch { width:16px; height:12px; border-radius:3px; }
+
+    /* ======== TABLE ======== */
+    .table-card {
+      background:var(--white); border-radius:var(--radius-card); box-shadow:var(--shadow-sm);
+      overflow:hidden;
+    }
+    .table-card table { width:100%; border-collapse:collapse; }
+    .table-card thead th {
+      background:var(--almost-black); color:var(--white); font-size:11.5px; font-weight:600;
+      text-transform:uppercase; letter-spacing:.4px; padding:14px 16px; text-align:left;
+      white-space:nowrap;
+    }
+    .table-card tbody tr { transition:background var(--transition-fast); cursor:pointer; }
+    .table-card tbody tr:nth-child(even) { background:var(--whitesmoke); }
+    .table-card tbody tr:hover { background:rgba(0,115,234,.04); }
+    .table-card tbody td { padding:12px 16px; font-size:13px; border-bottom:1px solid rgba(0,0,0,.04); white-space:nowrap; }
+    .vendedor-name { display:flex; align-items:center; gap:10px; font-weight:600; }
+    .vendedor-avatar {
+      width:30px; height:30px; border-radius:50%; display:flex; align-items:center;
+      justify-content:center; font-size:12px; color:var(--white); font-weight:600; flex-shrink:0;
+    }
+    .team-badge {
+      display:inline-block; padding:2px 10px; border-radius:var(--radius-pill);
+      font-size:11px; font-weight:600;
+    }
+    .team-badge.corporativo { background:rgba(97,97,255,.1); color:var(--monday-purple); }
+    .team-badge.medio { background:rgba(0,115,234,.08); color:var(--monday-blue); }
+    .team-badge.pme { background:rgba(0,202,114,.08); color:var(--monday-green); }
+
+    /* Progress bars */
+    .progress-bar-wrap {
+      width:120px; height:8px; background:var(--whitesmoke); border-radius:var(--radius-pill);
+      overflow:hidden;
+    }
+    .progress-bar-fill {
+      height:100%; border-radius:var(--radius-pill);
+      animation:progressGrow .8s ease-out forwards;
+      transform-origin:left;
+    }
+    @keyframes progressGrow { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+    .pct-green { color:var(--monday-green); font-weight:700; }
+    .pct-blue { color:var(--monday-blue); font-weight:600; }
+    .pct-red { color:var(--monday-red); font-weight:600; }
+
+    /* Sub-row (deal details) */
+    .deal-sub-row { display:none; }
+    .deal-sub-row.open { display:table-row; }
+    .deal-sub-row td { padding:0 !important; background:rgba(0,0,0,.02); }
+    .deal-table { width:100%; border-collapse:collapse; margin:0; }
+    .deal-table th {
+      background:rgba(0,0,0,.04); font-size:11px; font-weight:600; color:var(--dark-grey);
+      text-transform:uppercase; letter-spacing:.3px; padding:10px 16px 10px 60px; text-align:left;
+    }
+    .deal-table td { padding:10px 16px 10px 60px; font-size:12.5px; color:var(--dark-grey); border-bottom:1px solid rgba(0,0,0,.04); }
+    .deal-table tr:last-child td { border-bottom:none; }
+    .expand-icon {
+      font-size:18px; color:var(--grey); transition:transform var(--transition-fast);
+      vertical-align:middle; margin-right:4px;
+    }
+    .expanded-row .expand-icon { transform:rotate(90deg); }
+
+    /* ======== QUARTERLY CARDS ======== */
+    .quarter-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+    .quarter-card {
+      background:var(--white); border-radius:var(--radius-card); padding:24px;
+      box-shadow:var(--shadow-sm); text-align:center;
+      transition:box-shadow var(--transition-base),transform var(--transition-base);
+    }
+    .quarter-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+    .quarter-label { font-size:14px; font-weight:700; color:var(--almost-black); margin-bottom:16px; }
+    .quarter-sub { font-size:11px; color:var(--grey); text-transform:uppercase; letter-spacing:.3px; }
+    .svg-progress { width:100px; height:100px; margin:12px auto; }
+    .svg-progress-bg { fill:none; stroke:var(--whitesmoke); stroke-width:8; }
+    .svg-progress-bar {
+      fill:none; stroke-width:8; stroke-linecap:round;
+      transform:rotate(-90deg); transform-origin:50% 50%;
+      animation:circleGrow 1s ease-out forwards;
+    }
+    @keyframes circleGrow { from { stroke-dasharray:0 999; } }
+    .quarter-pct { font-size:22px; font-weight:700; }
+    .quarter-meta, .quarter-real { font-size:12.5px; color:var(--dark-grey); margin-top:4px; }
+    .quarter-real { font-weight:600; }
+    .quarter-status { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; margin-top:12px; padding:4px 14px; border-radius:var(--radius-pill); }
+    .status-on-track { background:rgba(0,202,114,.1); color:var(--monday-green); }
+    .status-pending { background:var(--whitesmoke); color:var(--grey); }
+
+    /* ======== FORECAST ======== */
+    .forecast-card {
+      background:var(--white); border-radius:var(--radius-card); padding:28px;
+      box-shadow:var(--shadow-sm);
+    }
+    .forecast-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+    .forecast-item { padding:20px; border:1px solid rgba(0,0,0,.06); border-radius:var(--radius-card); }
+    .forecast-period { font-size:12px; font-weight:600; color:var(--grey); text-transform:uppercase; letter-spacing:.3px; }
+    .forecast-value { font-size:24px; font-weight:700; color:var(--almost-black); margin:8px 0 4px; }
+    .forecast-deals { font-size:12px; color:var(--grey); margin-bottom:12px; }
+    .forecast-deal-list { list-style:none; }
+    .forecast-deal-list li {
+      font-size:12px; color:var(--dark-grey); padding:6px 0;
+      border-top:1px solid rgba(0,0,0,.04); display:flex; justify-content:space-between;
+    }
+    .forecast-deal-list li:first-child { border-top:none; }
+    .forecast-deal-val { font-weight:600; color:var(--almost-black); }
+
+    /* ======== VIEW SECTIONS ======== */
+    .view-section { display:none; }
+    .view-section.active { display:block; }
+
+    /* ======== RESPONSIVE ======== */
+    @media(max-width:1200px) {
+      .kpi-grid, .quarter-grid, .forecast-grid { grid-template-columns:repeat(2,1fr); }
+    }
+    @media(max-width:768px) {
+      .topbar { left:0!important; padding:0 16px; }
+      .content { margin-left:0!important; padding:20px 16px; }
+      .kpi-grid, .quarter-grid, .forecast-grid { grid-template-columns:1fr; }
+      .topbar-right { gap:6px; }
+      .toggle-pills { display:none; }
+      .chart-wrapper { height:220px; }
+      .table-card { overflow-x:auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======== SIDEBAR ======== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><span>A</span></div>
+      <span class="logo-text">ARV CRM</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="01_layout.html">
+        <span class="material-icons-outlined">dashboard</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a class="nav-item expanded" href="#" onclick="toggleSub(event,'pipeline-sub')">
+        <span class="material-icons-outlined">view_kanban</span>
+        <span class="nav-label">Pipeline</span>
+        <span class="material-icons-outlined expand-arrow">expand_more</span>
+      </a>
+      <div class="nav-sub open" id="pipeline-sub">
+        <a class="nav-sub-item" href="03_pipeline_prevendas.html">
+          <span class="sub-dot"></span>
+          <span class="nav-label">Pre Vendas</span>
+        </a>
+        <a class="nav-sub-item" href="04_pipeline_vendas.html">
+          <span class="sub-dot"></span>
+          <span class="nav-label">Vendas</span>
+        </a>
+      </div>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">business</span>
+        <span class="nav-label">Empresas</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">contacts</span>
+        <span class="nav-label">Contatos</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">description</span>
+        <span class="nav-label">Propostas & Orcamentos</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">event</span>
+        <span class="nav-label">Visitas</span>
+      </a>
+      <a class="nav-item active" href="10_metas.html">
+        <span class="material-icons-outlined">trending_up</span>
+        <span class="nav-label">Metas de Vendas</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">analytics</span>
+        <span class="nav-label">Dashboard de Funil</span>
+      </a>
+      <div class="nav-separator"></div>
+      <a class="nav-item" href="#">
+        <span class="material-icons-outlined">settings</span>
+        <span class="nav-label">Configuracoes</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">B</div>
+        <div class="user-info">
+          <div class="user-name">Bruno</div>
+          <div class="user-role">Administrador</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======== TOPBAR ======== -->
+  <header class="topbar">
+    <div class="breadcrumb">
+      <span>CRM</span>
+      <span>/</span>
+      <strong>Metas de Vendas</strong>
+    </div>
+    <div class="topbar-right">
+      <select class="year-select" id="yearSelect">
+        <option value="2026" selected>2026</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+      </select>
+      <div class="toggle-pills" id="viewToggle">
+        <button class="toggle-pill active" data-view="mensal" onclick="switchView('mensal')">Mensal</button>
+        <button class="toggle-pill" data-view="trimestral" onclick="switchView('trimestral')">Trimestral</button>
+        <button class="toggle-pill" data-view="anual" onclick="switchView('anual')">Anual</button>
+      </div>
+      <select class="team-filter" id="teamFilter">
+        <option value="todas">Todas</option>
+        <option value="pme">PME</option>
+        <option value="medio">Medio Porte</option>
+        <option value="corporativo">Corporativo</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- ======== CONTENT ======== -->
+  <main class="content">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-border" style="background:var(--almost-black)"></div>
+        <div class="kpi-header">
+          <span class="kpi-label">Meta Anual</span>
+          <div class="kpi-icon" style="background:rgba(17,17,17,.06);color:var(--almost-black)">
+            <span class="material-icons-outlined">flag</span>
+          </div>
+        </div>
+        <div class="kpi-value">R$ 12.000.000</div>
+        <div class="kpi-sub">target 2026</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-border" style="background:var(--monday-green)"></div>
+        <div class="kpi-header">
+          <span class="kpi-label">Realizado YTD</span>
+          <div class="kpi-icon" style="background:rgba(0,202,114,.08);color:var(--monday-green)">
+            <span class="material-icons-outlined">payments</span>
+          </div>
+        </div>
+        <div class="kpi-value">R$ 3.200.000</div>
+        <div class="kpi-sub">ate marco</div>
+        <div class="kpi-badge green">
+          <span class="material-icons-outlined">trending_up</span> 18% vs ano ant.
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-border" style="background:var(--monday-yellow)"></div>
+        <div class="kpi-header">
+          <span class="kpi-label">Delta</span>
+          <div class="kpi-icon" style="background:rgba(255,203,0,.1);color:#b8920a">
+            <span class="material-icons-outlined">warning_amber</span>
+          </div>
+        </div>
+        <div class="kpi-value">-R$ 800.000</div>
+        <div class="kpi-sub">abaixo da meta acumulada</div>
+        <div class="kpi-badge yellow">
+          <span class="material-icons-outlined">info</span> atenao
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-border" style="background:var(--monday-blue)"></div>
+        <div class="kpi-header">
+          <span class="kpi-label">% Atingimento</span>
+          <div class="kpi-icon" style="background:rgba(0,115,234,.08);color:var(--monday-blue)">
+            <span class="material-icons-outlined">speed</span>
+          </div>
+        </div>
+        <div class="kpi-value">80%</div>
+        <div class="kpi-sub">da meta ate o momento</div>
+      </div>
+    </div>
+
+    <!-- ======== MENSAL VIEW ======== -->
+    <div class="view-section active" id="view-mensal">
+
+      <!-- Bar Chart -->
+      <div class="section">
+        <div class="section-title">Meta vs Realizado — 2026</div>
+        <div class="section-subtitle">Comparativo mensal de metas e resultados</div>
+        <div class="chart-card">
+          <div class="chart-wrapper">
+            <!-- Y Axis -->
+            <div class="y-axis">
+              <div class="y-label">R$ 0</div>
+              <div class="y-label">R$ 300K</div>
+              <div class="y-label">R$ 600K</div>
+              <div class="y-label">R$ 900K</div>
+              <div class="y-label">R$ 1.2M</div>
+            </div>
+            <!-- Grid lines -->
+            <div class="x-axis-line" style="bottom:40px"></div>
+            <div class="x-axis-line" style="bottom:calc(40px + 25%)"></div>
+            <div class="x-axis-line" style="bottom:calc(40px + 50%)"></div>
+            <div class="x-axis-line" style="bottom:calc(40px + 75%)"></div>
+            <div class="x-axis-line" style="bottom:calc(40px + 100%)"></div>
+            <!-- Bars -->
+            <div class="chart-bars" id="chartBars">
+              <!-- Jan -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:75%"></div>
+                <div class="bar bar-real" style="height:70.8%"></div>
+                <div class="bar-tooltip">Meta: R$ 900K | Real: R$ 850K</div>
+                <span class="bar-month">Jan</span>
+              </div>
+              <!-- Fev -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:79.2%"></div>
+                <div class="bar bar-real" style="height:91.7%"></div>
+                <div class="bar-tooltip">Meta: R$ 950K | Real: R$ 1.100K</div>
+                <span class="bar-month">Fev</span>
+              </div>
+              <!-- Mar (current) -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-real bar-current" style="height:62.5%"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: R$ 750K (em andamento)</div>
+                <span class="bar-month">Mar</span>
+              </div>
+              <!-- Abr -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-future" style="height:0%;min-height:20px"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: —</div>
+                <span class="bar-month">Abr</span>
+              </div>
+              <!-- Mai -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-future" style="height:0%;min-height:20px"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: —</div>
+                <span class="bar-month">Mai</span>
+              </div>
+              <!-- Jun -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-future" style="height:0%;min-height:20px"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: —</div>
+                <span class="bar-month">Jun</span>
+              </div>
+              <!-- Jul -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-future" style="height:0%;min-height:20px"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: —</div>
+                <span class="bar-month">Jul</span>
+              </div>
+              <!-- Ago -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-future" style="height:0%;min-height:20px"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: —</div>
+                <span class="bar-month">Ago</span>
+              </div>
+              <!-- Set -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-future" style="height:0%;min-height:20px"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: —</div>
+                <span class="bar-month">Set</span>
+              </div>
+              <!-- Out -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-future" style="height:0%;min-height:20px"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: —</div>
+                <span class="bar-month">Out</span>
+              </div>
+              <!-- Nov -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-future" style="height:0%;min-height:20px"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: —</div>
+                <span class="bar-month">Nov</span>
+              </div>
+              <!-- Dez -->
+              <div class="bar-group">
+                <div class="bar bar-meta" style="height:83.3%"></div>
+                <div class="bar bar-future" style="height:0%;min-height:20px"></div>
+                <div class="bar-tooltip">Meta: R$ 1.000K | Real: —</div>
+                <span class="bar-month">Dez</span>
+              </div>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-swatch" style="background:var(--almost-black);opacity:.25"></div>
+              Meta
+            </div>
+            <div class="legend-item">
+              <div class="legend-swatch" style="background:linear-gradient(to right,var(--monday-blue),var(--monday-green))"></div>
+              Realizado
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sales Rep Table -->
+      <div class="section">
+        <div class="section-title">Desempenho por Vendedor</div>
+        <div class="section-subtitle">Acompanhamento individual de metas mensais e anuais</div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Vendedor</th>
+                <th>Equipe</th>
+                <th>Funcao</th>
+                <th>Meta Mes</th>
+                <th>Real Mes</th>
+                <th>%</th>
+                <th>Progresso</th>
+                <th>Meta Ano</th>
+                <th>Real Ano</th>
+                <th>% Ano</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Mariana -->
+              <tr onclick="toggleDealRow('deals-1')" id="row-1">
+                <td>
+                  <div class="vendedor-name">
+                    <span class="material-icons-outlined expand-icon">chevron_right</span>
+                    <div class="vendedor-avatar" style="background:linear-gradient(135deg,var(--monday-purple),var(--monday-blue))">MC</div>
+                    Mariana Constantinou
+                  </div>
+                </td>
+                <td><span class="team-badge corporativo">Corporativo</span></td>
+                <td>AE</td>
+                <td>R$ 250.000</td>
+                <td>R$ 225.000</td>
+                <td class="pct-blue">90%</td>
+                <td>
+                  <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:90%;background:var(--monday-blue)"></div>
+                  </div>
+                </td>
+                <td>R$ 3.000.000</td>
+                <td>R$ 920.000</td>
+                <td class="pct-blue">31%</td>
+              </tr>
+              <tr class="deal-sub-row" id="deals-1">
+                <td colspan="10">
+                  <table class="deal-table">
+                    <thead><tr><th>Deal</th><th>Empresa</th><th>Valor</th><th>Etapa</th><th>Probabilidade</th></tr></thead>
+                    <tbody>
+                      <tr><td>Celula Robotica</td><td>AutoParts Brasil</td><td>R$ 680.000</td><td>Dev. Proposta</td><td>60%</td></tr>
+                      <tr><td>Automacao Pack</td><td>Alimentos Naturais</td><td>R$ 410.000</td><td>Proposta Enviada</td><td>65%</td></tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Saulo -->
+              <tr onclick="toggleDealRow('deals-2')" id="row-2">
+                <td>
+                  <div class="vendedor-name">
+                    <span class="material-icons-outlined expand-icon">chevron_right</span>
+                    <div class="vendedor-avatar" style="background:linear-gradient(135deg,var(--monday-blue),var(--monday-green))">SA</div>
+                    Saulo
+                  </div>
+                </td>
+                <td><span class="team-badge corporativo">Corporativo</span></td>
+                <td>AE</td>
+                <td>R$ 250.000</td>
+                <td>R$ 190.000</td>
+                <td class="pct-blue">76%</td>
+                <td>
+                  <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:76%;background:var(--monday-blue)"></div>
+                  </div>
+                </td>
+                <td>R$ 3.000.000</td>
+                <td>R$ 780.000</td>
+                <td class="pct-blue">26%</td>
+              </tr>
+              <tr class="deal-sub-row" id="deals-2">
+                <td colspan="10">
+                  <table class="deal-table">
+                    <thead><tr><th>Deal</th><th>Empresa</th><th>Valor</th><th>Etapa</th><th>Probabilidade</th></tr></thead>
+                    <tbody>
+                      <tr><td>Sistema CLP</td><td>Metalurgica Norte</td><td>R$ 520.000</td><td>Negociacao</td><td>55%</td></tr>
+                      <tr><td>Linha Robotizada</td><td>Plasticos Premium</td><td>R$ 380.000</td><td>Dev. Proposta</td><td>50%</td></tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Lilian -->
+              <tr onclick="toggleDealRow('deals-3')" id="row-3">
+                <td>
+                  <div class="vendedor-name">
+                    <span class="material-icons-outlined expand-icon">chevron_right</span>
+                    <div class="vendedor-avatar" style="background:linear-gradient(135deg,var(--monday-green),var(--monday-yellow))">LC</div>
+                    Lilian Costa
+                  </div>
+                </td>
+                <td><span class="team-badge medio">Medio Porte</span></td>
+                <td>AE</td>
+                <td>R$ 200.000</td>
+                <td>R$ 235.000</td>
+                <td class="pct-green">117%</td>
+                <td>
+                  <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:100%;background:var(--monday-green)"></div>
+                  </div>
+                </td>
+                <td>R$ 2.400.000</td>
+                <td>R$ 850.000</td>
+                <td class="pct-blue">35%</td>
+              </tr>
+              <tr class="deal-sub-row" id="deals-3">
+                <td colspan="10">
+                  <table class="deal-table">
+                    <thead><tr><th>Deal</th><th>Empresa</th><th>Valor</th><th>Etapa</th><th>Probabilidade</th></tr></thead>
+                    <tbody>
+                      <tr><td>Esteira Inteligente</td><td>LogiTech Brasil</td><td>R$ 290.000</td><td>Fechamento</td><td>85%</td></tr>
+                      <tr><td>Painel IoT</td><td>Fabrica Verde</td><td>R$ 180.000</td><td>Proposta Enviada</td><td>70%</td></tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Santiago -->
+              <tr onclick="toggleDealRow('deals-4')" id="row-4">
+                <td>
+                  <div class="vendedor-name">
+                    <span class="material-icons-outlined expand-icon">chevron_right</span>
+                    <div class="vendedor-avatar" style="background:linear-gradient(135deg,var(--monday-orange),var(--monday-red))">ST</div>
+                    Santiago
+                  </div>
+                </td>
+                <td><span class="team-badge pme">PME</span></td>
+                <td>AE</td>
+                <td>R$ 150.000</td>
+                <td>R$ 100.000</td>
+                <td class="pct-red">67%</td>
+                <td>
+                  <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:67%;background:var(--monday-red)"></div>
+                  </div>
+                </td>
+                <td>R$ 1.800.000</td>
+                <td>R$ 380.000</td>
+                <td class="pct-red">21%</td>
+              </tr>
+              <tr class="deal-sub-row" id="deals-4">
+                <td colspan="10">
+                  <table class="deal-table">
+                    <thead><tr><th>Deal</th><th>Empresa</th><th>Valor</th><th>Etapa</th><th>Probabilidade</th></tr></thead>
+                    <tbody>
+                      <tr><td>CNC Upgrade</td><td>Tornearia Souza</td><td>R$ 95.000</td><td>Qualificacao</td><td>35%</td></tr>
+                      <tr><td>Sensor Pack</td><td>MicroTech</td><td>R$ 65.000</td><td>Dev. Proposta</td><td>45%</td></tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Gabriel -->
+              <tr onclick="toggleDealRow('deals-5')" id="row-5">
+                <td>
+                  <div class="vendedor-name">
+                    <span class="material-icons-outlined expand-icon">chevron_right</span>
+                    <div class="vendedor-avatar" style="background:linear-gradient(135deg,var(--red),var(--monday-purple))">GM</div>
+                    Gabriel Moraes
+                  </div>
+                </td>
+                <td><span class="team-badge pme">PME</span></td>
+                <td>AM</td>
+                <td>R$ 100.000</td>
+                <td>R$ 70.000</td>
+                <td class="pct-blue">70%</td>
+                <td>
+                  <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:70%;background:var(--monday-blue)"></div>
+                  </div>
+                </td>
+                <td>R$ 1.200.000</td>
+                <td>R$ 270.000</td>
+                <td class="pct-red">23%</td>
+              </tr>
+              <tr class="deal-sub-row" id="deals-5">
+                <td colspan="10">
+                  <table class="deal-table">
+                    <thead><tr><th>Deal</th><th>Empresa</th><th>Valor</th><th>Etapa</th><th>Probabilidade</th></tr></thead>
+                    <tbody>
+                      <tr><td>Manutencao Anual</td><td>Ind. Paulista</td><td>R$ 48.000</td><td>Negociacao</td><td>75%</td></tr>
+                      <tr><td>Expansao Linha 2</td><td>Textil Moderna</td><td>R$ 120.000</td><td>Dev. Proposta</td><td>40%</td></tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== TRIMESTRAL VIEW ======== -->
+    <div class="view-section" id="view-trimestral">
+      <div class="section">
+        <div class="section-title">Visao Trimestral</div>
+        <div class="section-subtitle">Acompanhamento por trimestre — 2026</div>
+        <div class="quarter-grid">
+          <!-- Q1 -->
+          <div class="quarter-card">
+            <div class="quarter-label">Q1</div>
+            <div class="quarter-sub">Jan — Mar</div>
+            <svg class="svg-progress" viewBox="0 0 120 120">
+              <circle class="svg-progress-bg" cx="60" cy="60" r="50"/>
+              <circle class="svg-progress-bar" cx="60" cy="60" r="50"
+                stroke="var(--monday-green)"
+                stroke-dasharray="298 314" />
+              <text x="60" y="64" text-anchor="middle" fill="var(--almost-black)"
+                font-size="22" font-weight="700" font-family="Inter Tight">95%</text>
+            </svg>
+            <div class="quarter-meta">Meta: R$ 2.850.000</div>
+            <div class="quarter-real">Real: R$ 2.700.000</div>
+            <div class="quarter-status status-on-track">On Track</div>
+          </div>
+          <!-- Q2 -->
+          <div class="quarter-card">
+            <div class="quarter-label">Q2</div>
+            <div class="quarter-sub">Abr — Jun</div>
+            <svg class="svg-progress" viewBox="0 0 120 120">
+              <circle class="svg-progress-bg" cx="60" cy="60" r="50"/>
+              <circle class="svg-progress-bar" cx="60" cy="60" r="50"
+                stroke="var(--light-grey)"
+                stroke-dasharray="0 314" />
+              <text x="60" y="64" text-anchor="middle" fill="var(--grey)"
+                font-size="22" font-weight="700" font-family="Inter Tight">0%</text>
+            </svg>
+            <div class="quarter-meta">Meta: R$ 3.000.000</div>
+            <div class="quarter-real">Real: R$ 0</div>
+            <div class="quarter-status status-pending">Pending</div>
+          </div>
+          <!-- Q3 -->
+          <div class="quarter-card">
+            <div class="quarter-label">Q3</div>
+            <div class="quarter-sub">Jul — Set</div>
+            <svg class="svg-progress" viewBox="0 0 120 120">
+              <circle class="svg-progress-bg" cx="60" cy="60" r="50"/>
+              <circle class="svg-progress-bar" cx="60" cy="60" r="50"
+                stroke="var(--light-grey)"
+                stroke-dasharray="0 314" />
+              <text x="60" y="64" text-anchor="middle" fill="var(--grey)"
+                font-size="22" font-weight="700" font-family="Inter Tight">0%</text>
+            </svg>
+            <div class="quarter-meta">Meta: R$ 3.000.000</div>
+            <div class="quarter-real">Real: R$ 0</div>
+            <div class="quarter-status status-pending">Pending</div>
+          </div>
+          <!-- Q4 -->
+          <div class="quarter-card">
+            <div class="quarter-label">Q4</div>
+            <div class="quarter-sub">Out — Dez</div>
+            <svg class="svg-progress" viewBox="0 0 120 120">
+              <circle class="svg-progress-bg" cx="60" cy="60" r="50"/>
+              <circle class="svg-progress-bar" cx="60" cy="60" r="50"
+                stroke="var(--light-grey)"
+                stroke-dasharray="0 314" />
+              <text x="60" y="64" text-anchor="middle" fill="var(--grey)"
+                font-size="22" font-weight="700" font-family="Inter Tight">0%</text>
+            </svg>
+            <div class="quarter-meta">Meta: R$ 3.150.000</div>
+            <div class="quarter-real">Real: R$ 0</div>
+            <div class="quarter-status status-pending">Pending</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== ANUAL VIEW ======== -->
+    <div class="view-section" id="view-anual">
+      <div class="section">
+        <div class="section-title">Visao Anual — 2026</div>
+        <div class="section-subtitle">Resumo consolidado do ano</div>
+        <div class="quarter-grid" style="grid-template-columns:repeat(2,1fr)">
+          <div class="quarter-card">
+            <div class="quarter-label">Meta Anual</div>
+            <svg class="svg-progress" viewBox="0 0 120 120" style="width:140px;height:140px">
+              <circle class="svg-progress-bg" cx="60" cy="60" r="50"/>
+              <circle class="svg-progress-bar" cx="60" cy="60" r="50"
+                stroke="var(--monday-blue)"
+                stroke-dasharray="251 314" />
+              <text x="60" y="58" text-anchor="middle" fill="var(--almost-black)"
+                font-size="20" font-weight="700" font-family="Inter Tight">80%</text>
+              <text x="60" y="76" text-anchor="middle" fill="var(--grey)"
+                font-size="10" font-family="Inter Tight">atingido</text>
+            </svg>
+            <div class="quarter-meta" style="font-size:14px;margin-top:8px">Meta: R$ 12.000.000</div>
+            <div class="quarter-real" style="font-size:14px">Realizado: R$ 3.200.000</div>
+            <div class="quarter-meta" style="margin-top:8px">Restante: R$ 8.800.000 em 9 meses</div>
+          </div>
+          <div class="quarter-card">
+            <div class="quarter-label">Projecao de Ritmo</div>
+            <div style="margin-top:20px">
+              <div style="font-size:13px;color:var(--dark-grey);margin-bottom:12px">
+                Media mensal necessaria: <strong style="color:var(--almost-black)">R$ 977.778</strong>
+              </div>
+              <div style="font-size:13px;color:var(--dark-grey);margin-bottom:12px">
+                Media mensal atual: <strong style="color:var(--monday-green)">R$ 1.066.667</strong>
+              </div>
+              <div style="font-size:13px;color:var(--dark-grey);margin-bottom:12px">
+                Meses restantes: <strong style="color:var(--almost-black)">9</strong>
+              </div>
+              <div style="margin-top:20px;padding:12px 16px;background:rgba(0,202,114,.06);border-radius:var(--radius-card);border-left:3px solid var(--monday-green)">
+                <div style="font-size:12px;font-weight:600;color:var(--monday-green)">Projecao otimista</div>
+                <div style="font-size:13px;color:var(--dark-grey);margin-top:4px">Mantendo o ritmo atual, a projecao e de <strong>R$ 12.800.000</strong> ao final do ano.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== FORECAST (always visible) ======== -->
+    <div class="section">
+      <div class="section-title">Previsao de Fechamento</div>
+      <div class="section-subtitle">Baseado no pipeline aberto x probabilidade</div>
+      <div class="forecast-card">
+        <div class="forecast-grid">
+          <!-- 30 dias -->
+          <div class="forecast-item">
+            <div class="forecast-period">Proximos 30 dias</div>
+            <div class="forecast-value">R$ 480.000</div>
+            <div class="forecast-deals">a partir de 4 deals</div>
+            <ul class="forecast-deal-list">
+              <li><span>Esteira Inteligente — LogiTech</span><span class="forecast-deal-val">R$ 246K</span></li>
+              <li><span>Manutencao Anual — Ind. Paulista</span><span class="forecast-deal-val">R$ 36K</span></li>
+              <li><span>Painel IoT — Fabrica Verde</span><span class="forecast-deal-val">R$ 126K</span></li>
+              <li><span>Outros (1 deal)</span><span class="forecast-deal-val">R$ 72K</span></li>
+            </ul>
+          </div>
+          <!-- 60 dias -->
+          <div class="forecast-item">
+            <div class="forecast-period">Proximos 60 dias</div>
+            <div class="forecast-value">R$ 850.000</div>
+            <div class="forecast-deals">a partir de 7 deals</div>
+            <ul class="forecast-deal-list">
+              <li><span>Automacao Pack — Alimentos Nat.</span><span class="forecast-deal-val">R$ 266K</span></li>
+              <li><span>Celula Robotica — AutoParts</span><span class="forecast-deal-val">R$ 408K</span></li>
+              <li><span>Linha Robotizada — Plasticos Pr.</span><span class="forecast-deal-val">R$ 190K</span></li>
+            </ul>
+          </div>
+          <!-- 90 dias -->
+          <div class="forecast-item">
+            <div class="forecast-period">Proximos 90 dias</div>
+            <div class="forecast-value">R$ 1.280.000</div>
+            <div class="forecast-deals">a partir de 11 deals</div>
+            <ul class="forecast-deal-list">
+              <li><span>Sistema CLP — Metalurgica Norte</span><span class="forecast-deal-val">R$ 286K</span></li>
+              <li><span>Expansao Linha 2 — Textil Mod.</span><span class="forecast-deal-val">R$ 48K</span></li>
+              <li><span>CNC Upgrade — Tornearia Souza</span><span class="forecast-deal-val">R$ 33K</span></li>
+              <li><span>Outros (4 deals)</span><span class="forecast-deal-val">R$ 63K</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    /* Sidebar sub-menu toggle */
+    function toggleSub(e, id) {
+      e.preventDefault();
+      var sub = document.getElementById(id);
+      var item = e.currentTarget;
+      if (sub.classList.contains('open')) {
+        sub.classList.remove('open');
+        item.classList.remove('expanded');
+      } else {
+        sub.classList.add('open');
+        item.classList.add('expanded');
+      }
+    }
+
+    /* View toggle */
+    function switchView(view) {
+      document.querySelectorAll('.toggle-pill').forEach(function(p) {
+        p.classList.toggle('active', p.getAttribute('data-view') === view);
+      });
+      document.querySelectorAll('.view-section').forEach(function(s) {
+        s.classList.toggle('active', s.id === 'view-' + view);
+      });
+    }
+
+    /* Expandable deal rows */
+    function toggleDealRow(id) {
+      var row = document.getElementById(id);
+      var parentRow = row.previousElementSibling;
+      if (row.classList.contains('open')) {
+        row.classList.remove('open');
+        parentRow.classList.remove('expanded-row');
+      } else {
+        row.classList.add('open');
+        parentRow.classList.add('expanded-row');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empresas | CRM ARV Systems</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--almost-black:#111111;--white:#ffffff;--whitesmoke:#f5f5f5;
+--dark-grey:#5d5d5d;--grey:#9f9f9f;--light-grey:#d1d1d1;--red:#c82a2a;
+--monday-purple:#6161ff;--monday-blue:#0073ea;--monday-green:#00ca72;
+--monday-yellow:#ffcb00;--monday-red:#e44258;--monday-orange:#ff7575;
+--radius:8px;--radius-pill:9999px;
+--shadow-sm:0 1px 3px rgba(0,0,0,.08);
+--shadow-md:0 4px 12px rgba(0,0,0,.1);
+--shadow-lg:0 8px 30px rgba(0,0,0,.12);
+}
+body{font-family:'Inter Tight',sans-serif;background:var(--whitesmoke);color:var(--almost-black);display:flex;min-height:100vh;overflow-x:hidden}
+
+/* ===== SIDEBAR ===== */
+.sidebar{width:260px;min-width:260px;background:var(--almost-black);color:var(--white);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sidebar-logo{padding:24px 20px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo .logo-icon{width:38px;height:38px;background:var(--red);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.sidebar-logo .logo-text{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.sidebar-logo .logo-text span{color:var(--red)}
+.sidebar-nav{flex:1;padding:16px 0;overflow-y:auto}
+.nav-section{padding:0 16px;margin-bottom:6px}
+.nav-section-title{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--grey);padding:8px 8px 6px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:6px;color:rgba(255,255,255,.55);font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none;position:relative;margin:1px 0}
+.nav-item:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.06)}
+.nav-item.active{color:var(--white);background:rgba(255,255,255,.08);border-left:3px solid var(--red);margin-left:-3px;padding-left:17px}
+.nav-item .material-icons-outlined{font-size:20px;opacity:.7}
+.nav-item.active .material-icons-outlined{opacity:1}
+.nav-badge{margin-left:auto;background:var(--red);color:var(--white);font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--radius-pill);min-width:20px;text-align:center}
+.sidebar-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.user-info{flex:1}
+.user-name{font-size:13px;font-weight:600}
+.user-role{font-size:11px;color:var(--grey)}
+
+/* ===== MAIN ===== */
+.main{margin-left:260px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+
+/* ===== TOPBAR ===== */
+.topbar{background:var(--white);padding:16px 32px;display:flex;align-items:center;gap:20px;border-bottom:1px solid var(--light-grey);position:sticky;top:0;z-index:50}
+.breadcrumb{font-size:13px;color:var(--grey);white-space:nowrap}
+.breadcrumb span{color:var(--almost-black);font-weight:600}
+.topbar-search{flex:1;max-width:460px;position:relative}
+.topbar-search input{width:100%;padding:9px 14px 9px 38px;border:1.5px solid var(--light-grey);border-radius:var(--radius);font-family:inherit;font-size:13px;background:var(--whitesmoke);transition:all .2s}
+.topbar-search input:focus{outline:none;border-color:var(--monday-blue);background:var(--white);box-shadow:0 0 0 3px rgba(0,115,234,.1)}
+.topbar-search .material-icons-outlined{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:19px;color:var(--grey)}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius-pill);font-family:inherit;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--monday-blue);color:var(--white)}
+.btn-primary:hover{background:#005bb5;box-shadow:var(--shadow-md)}
+.btn-secondary{background:var(--white);color:var(--almost-black);border:1.5px solid var(--light-grey)}
+.btn-secondary:hover{border-color:var(--grey);background:var(--whitesmoke)}
+.btn .material-icons-outlined{font-size:18px}
+
+/* ===== CONTENT ===== */
+.content{padding:28px 32px;flex:1}
+
+/* ===== FILTER BAR ===== */
+.filter-bar{display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.filter-pills{display:flex;gap:4px;background:var(--white);border-radius:var(--radius);padding:4px;border:1px solid #e5e5e5}
+.filter-pill{padding:7px 14px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;border:none;background:transparent;font-family:inherit;color:var(--dark-grey)}
+.filter-pill:hover{background:var(--whitesmoke)}
+.filter-pill.active{background:var(--almost-black);color:var(--white)}
+.filter-select{padding:8px 32px 8px 12px;border:1.5px solid #e5e5e5;border-radius:var(--radius);font-family:inherit;font-size:12.5px;background:var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%239f9f9f' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 10px center;appearance:none;cursor:pointer;color:var(--almost-black)}
+.filter-select:focus{outline:none;border-color:var(--monday-blue)}
+
+/* ===== KPI CARDS ===== */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.kpi-card{background:var(--white);border-radius:var(--radius);padding:20px;border-top:3px solid var(--light-grey);box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.kpi-card.green{border-top-color:var(--monday-green)}
+.kpi-card.blue{border-top-color:var(--monday-blue)}
+.kpi-card.yellow{border-top-color:var(--monday-yellow)}
+.kpi-card.purple{border-top-color:var(--monday-purple)}
+.kpi-card.red{border-top-color:var(--red)}
+.kpi-card.orange{border-top-color:var(--monday-orange)}
+.kpi-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.kpi-header .material-icons-outlined{font-size:22px;color:var(--grey);background:var(--whitesmoke);padding:6px;border-radius:6px}
+.kpi-value{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1}
+.kpi-label{font-size:12px;color:var(--grey);margin-top:6px;font-weight:500}
+
+/* ===== TABLE ===== */
+.table-wrap{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+.table-container{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--almost-black);color:var(--white);padding:13px 16px;text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+tbody td{padding:12px 16px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+tbody tr{transition:background .1s}
+tbody tr:nth-child(even){background:#fafafa}
+tbody tr:hover{background:#f0f4ff}
+
+/* ===== STATUS BADGES ===== */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:var(--radius-pill);font-size:11.5px;font-weight:600;white-space:nowrap}
+.badge-green{background:rgba(0,202,114,.12);color:#00864a}
+.badge-blue{background:rgba(0,115,234,.1);color:#005bb5}
+.badge-yellow{background:rgba(255,203,0,.15);color:#8a6d00}
+.badge-grey{background:rgba(0,0,0,.06);color:var(--dark-grey)}
+.badge-red{background:rgba(200,42,42,.1);color:var(--red)}
+.badge-purple{background:rgba(97,97,255,.1);color:var(--monday-purple)}
+.badge-orange{background:rgba(255,117,117,.1);color:#cc4040}
+.badge-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.badge-dot.green{background:var(--monday-green)}
+.badge-dot.blue{background:var(--monday-blue)}
+.badge-dot.yellow{background:var(--monday-yellow)}
+.badge-dot.grey{background:var(--grey)}
+
+.btn-icon{width:34px;height:34px;border-radius:6px;border:1px solid #e5e5e5;background:var(--white);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--dark-grey)}
+.btn-icon:hover{background:var(--whitesmoke);border-color:var(--monday-blue);color:var(--monday-blue)}
+
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-top:1px solid #f0f0f0;font-size:12.5px;color:var(--grey)}
+.pagination-pages{display:flex;gap:4px}
+.page-btn{width:32px;height:32px;border-radius:6px;border:1px solid #e5e5e5;background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;transition:all .15s}
+.page-btn:hover{border-color:var(--monday-blue);color:var(--monday-blue)}
+.page-btn.active{background:var(--monday-blue);color:var(--white);border-color:var(--monday-blue)}
+
+/* ===== DETAIL VIEW ===== */
+.detail-view{display:none}
+.detail-view.active{display:block}
+.list-view.active{display:block}
+.list-view{display:none}
+
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--monday-blue);cursor:pointer;font-weight:500;margin-bottom:20px;text-decoration:none;transition:color .15s}
+.back-link:hover{color:#005bb5}
+.back-link .material-icons-outlined{font-size:18px}
+
+.detail-header{background:var(--white);border-radius:var(--radius);padding:28px 32px;box-shadow:var(--shadow-sm);margin-bottom:20px}
+.detail-header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.detail-header-info{flex:1}
+.company-name{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.company-razao{font-size:13.5px;color:var(--dark-grey);margin-bottom:12px}
+.detail-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.detail-meta-item{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--dark-grey)}
+.detail-meta-item .material-icons-outlined{font-size:16px}
+
+/* ===== TABS ===== */
+.tabs{display:flex;gap:2px;border-bottom:2px solid #e5e5e5;margin-bottom:24px;background:var(--white);border-radius:var(--radius) var(--radius) 0 0;padding:0 8px}
+.tab-btn{padding:14px 20px;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--grey);cursor:pointer;border:none;background:transparent;position:relative;transition:color .15s;white-space:nowrap}
+.tab-btn:hover{color:var(--almost-black)}
+.tab-btn.active{color:var(--monday-blue);font-weight:600}
+.tab-btn.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2.5px;background:var(--monday-blue);border-radius:2px 2px 0 0}
+.tab-btn .tab-count{background:var(--whitesmoke);color:var(--dark-grey);font-size:11px;padding:2px 7px;border-radius:var(--radius-pill);margin-left:5px;font-weight:600}
+.tab-btn.active .tab-count{background:rgba(0,115,234,.1);color:var(--monday-blue)}
+
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ===== DETAIL FIELDS ===== */
+.fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)}
+.field-row{display:flex;padding:14px 20px;border-bottom:1px solid #f0f0f0;gap:12px;align-items:center}
+.field-row:hover{background:#fafbff}
+.field-label{font-size:12px;color:var(--grey);font-weight:600;min-width:140px;text-transform:uppercase;letter-spacing:.3px}
+.field-value{font-size:13.5px;font-weight:500;flex:1}
+.field-value a{color:var(--monday-blue);text-decoration:none}
+.field-value a:hover{text-decoration:underline}
+.field-full{grid-column:1/-1}
+
+.btn-enrich{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:600;border:1.5px solid var(--monday-purple);color:var(--monday-purple);background:transparent;cursor:pointer;margin-left:8px;transition:all .15s}
+.btn-enrich:hover{background:var(--monday-purple);color:var(--white)}
+
+/* ===== TIMELINE ===== */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:#e5e5e5;border-radius:2px}
+.timeline-item{position:relative;padding:0 0 24px 0}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-dot{position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--monday-blue);border:2px solid var(--white);box-shadow:0 0 0 2px var(--monday-blue)}
+.timeline-dot.green{background:var(--monday-green);box-shadow:0 0 0 2px var(--monday-green)}
+.timeline-dot.red{background:var(--red);box-shadow:0 0 0 2px var(--red)}
+.timeline-dot.yellow{background:var(--monday-yellow);box-shadow:0 0 0 2px var(--monday-yellow)}
+.timeline-dot.purple{background:var(--monday-purple);box-shadow:0 0 0 2px var(--monday-purple)}
+.timeline-date{font-size:11.5px;color:var(--grey);font-weight:600;margin-bottom:3px}
+.timeline-text{font-size:13.5px;font-weight:500;color:var(--almost-black)}
+.timeline-text .highlight{color:var(--monday-green);font-weight:700}
+
+/* ===== INFLUENCE DOTS ===== */
+.influence{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600}
+.influence-dot{width:9px;height:9px;border-radius:50%}
+.influence-dot.decisor{background:var(--red)}
+.influence-dot.influenciador{background:var(--monday-yellow)}
+.influence-dot.operacional{background:var(--light-grey)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1200px){
+.kpi-grid{grid-template-columns:repeat(2,1fr)}
+.fields-grid{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+.sidebar{display:none}
+.main{margin-left:0}
+.filter-bar{flex-direction:column;align-items:stretch}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">A</div>
+    <div class="logo-text">ARV <span>Systems</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Principal</div>
+      <a class="nav-item" href="01_dashboard.html">
+        <span class="material-icons-outlined">dashboard</span> Dashboard
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">CRM</div>
+      <a class="nav-item" href="02_leads.html">
+        <span class="material-icons-outlined">person_search</span> Leads
+        <span class="nav-badge">24</span>
+      </a>
+      <a class="nav-item" href="03_oportunidades.html">
+        <span class="material-icons-outlined">trending_up</span> Oportunidades
+      </a>
+      <a class="nav-item" href="04_visitas.html">
+        <span class="material-icons-outlined">place</span> Visitas
+      </a>
+      <a class="nav-item" href="05_propostas.html">
+        <span class="material-icons-outlined">description</span> Propostas
+      </a>
+      <a class="nav-item active" href="06_empresas.html">
+        <span class="material-icons-outlined">business</span> Empresas
+      </a>
+      <a class="nav-item" href="07_contatos.html">
+        <span class="material-icons-outlined">contacts</span> Contatos
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Operacional</div>
+      <a class="nav-item" href="08_pos_venda.html">
+        <span class="material-icons-outlined">support_agent</span> Pos-Venda
+      </a>
+      <a class="nav-item" href="09_projetos.html">
+        <span class="material-icons-outlined">engineering</span> Projetos
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Sistema</div>
+      <a class="nav-item" href="10_configuracoes.html">
+        <span class="material-icons-outlined">settings</span> Configuracoes
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">B</div>
+    <div class="user-info">
+      <div class="user-name">Bruno</div>
+      <div class="user-role">Administrador</div>
+    </div>
+    <span class="material-icons-outlined" style="font-size:18px;color:var(--grey);cursor:pointer">logout</span>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="breadcrumb">CRM / <span>Empresas</span></div>
+    <div class="topbar-search">
+      <span class="material-icons-outlined">search</span>
+      <input type="text" placeholder="Buscar por nome, CNPJ ou cidade...">
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary">
+        <span class="material-icons-outlined">add</span> Nova Empresa
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== LIST VIEW ===== -->
+  <div class="content list-view active" id="listView">
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="filter-pills" id="statusFilter">
+        <button class="filter-pill active" data-status="all">Todos</button>
+        <button class="filter-pill" data-status="Prospect">Prospect</button>
+        <button class="filter-pill" data-status="Com Oportunidade">Com Oportunidade</button>
+        <button class="filter-pill" data-status="Cliente Ativo">Cliente Ativo</button>
+        <button class="filter-pill" data-status="Inativo">Inativo</button>
+      </div>
+      <select class="filter-select" id="segmentoFilter">
+        <option value="">Segmento: Todos</option>
+        <option>Automotivo</option>
+        <option>Farmaceutico</option>
+        <option>Alimenticio</option>
+        <option>Siderurgico</option>
+        <option>Textil</option>
+        <option>Papel/Celulose</option>
+        <option>Plasticos</option>
+        <option>Ceramica</option>
+        <option>Vidro</option>
+        <option>Petroquimico</option>
+      </select>
+      <select class="filter-select" id="estadoFilter">
+        <option value="">Estado: Todos</option>
+        <option>SP</option><option>MG</option><option>RJ</option><option>PR</option>
+        <option>RS</option><option>SC</option><option>BA</option><option>PE</option><option>AM</option>
+      </select>
+      <select class="filter-select" id="responsavelFilter">
+        <option value="">Responsavel: Todos</option>
+        <option>Mariana</option><option>Saulo</option><option>Lilian</option><option>Santiago</option>
+      </select>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card purple">
+        <div class="kpi-header">
+          <span class="material-icons-outlined">business</span>
+        </div>
+        <div class="kpi-value">156</div>
+        <div class="kpi-label">Total Empresas</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-header">
+          <span class="material-icons-outlined">verified</span>
+        </div>
+        <div class="kpi-value">42</div>
+        <div class="kpi-label">Clientes Ativos</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-header">
+          <span class="material-icons-outlined">trending_up</span>
+        </div>
+        <div class="kpi-value">23</div>
+        <div class="kpi-label">Com Oportunidade</div>
+      </div>
+      <div class="kpi-card yellow">
+        <div class="kpi-header">
+          <span class="material-icons-outlined">person_search</span>
+        </div>
+        <div class="kpi-value">91</div>
+        <div class="kpi-label">Prospects</div>
+      </div>
+    </div>
+
+    <!-- DATA TABLE -->
+    <div class="table-wrap">
+      <div class="table-container">
+        <table id="empresasTable">
+          <thead>
+            <tr>
+              <th>Nome Fantasia</th>
+              <th>CNPJ</th>
+              <th>Segmento</th>
+              <th>Status</th>
+              <th>Cidade/UF</th>
+              <th>Responsavel</th>
+              <th>Valor Total</th>
+              <th>Ultima Compra</th>
+              <th>Acoes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-status="Cliente Ativo" data-segmento="Automotivo" data-estado="SP" data-responsavel="Mariana">
+              <td style="font-weight:600">AutoParts Brasil</td>
+              <td style="font-family:monospace;font-size:12px">12.345.678/0001-90</td>
+              <td>Automotivo</td>
+              <td><span class="badge badge-green"><span class="badge-dot green"></span>Cliente Ativo</span></td>
+              <td>Campinas/SP</td>
+              <td>Mariana</td>
+              <td style="font-weight:600">R$ 1.250.000</td>
+              <td>15/01/2026</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Cliente Ativo" data-segmento="Siderurgico" data-estado="RS" data-responsavel="Saulo">
+              <td style="font-weight:600">Metalurgica Gaucha</td>
+              <td style="font-family:monospace;font-size:12px">98.765.432/0001-10</td>
+              <td>Siderurgico</td>
+              <td><span class="badge badge-green"><span class="badge-dot green"></span>Cliente Ativo</span></td>
+              <td>Porto Alegre/RS</td>
+              <td>Saulo</td>
+              <td style="font-weight:600">R$ 890.000</td>
+              <td>08/02/2026</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Com Oportunidade" data-segmento="Textil" data-estado="PE" data-responsavel="Lilian">
+              <td style="font-weight:600">Textil Nordeste</td>
+              <td style="font-family:monospace;font-size:12px">11.222.333/0001-44</td>
+              <td>Textil</td>
+              <td><span class="badge badge-blue"><span class="badge-dot blue"></span>Com Oportunidade</span></td>
+              <td>Recife/PE</td>
+              <td>Lilian</td>
+              <td style="color:var(--grey)">R$ 0</td>
+              <td style="color:var(--grey)">&mdash;</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Com Oportunidade" data-segmento="Alimenticio" data-estado="SP" data-responsavel="Mariana">
+              <td style="font-weight:600">Alimentos Naturais S.A.</td>
+              <td style="font-family:monospace;font-size:12px">44.555.666/0001-77</td>
+              <td>Alimenticio</td>
+              <td><span class="badge badge-blue"><span class="badge-dot blue"></span>Com Oportunidade</span></td>
+              <td>Ribeirao Preto/SP</td>
+              <td>Mariana</td>
+              <td style="font-weight:600">R$ 320.000</td>
+              <td>10/08/2025</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Com Oportunidade" data-segmento="Siderurgico" data-estado="RJ" data-responsavel="Lilian">
+              <td style="font-weight:600">Siderurgica Nacional</td>
+              <td style="font-family:monospace;font-size:12px">77.888.999/0001-11</td>
+              <td>Siderurgico</td>
+              <td><span class="badge badge-blue"><span class="badge-dot blue"></span>Com Oportunidade</span></td>
+              <td>Volta Redonda/RJ</td>
+              <td>Lilian</td>
+              <td style="font-weight:600">R$ 1.800.000</td>
+              <td>22/11/2025</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Prospect" data-segmento="Farmaceutico" data-estado="SP" data-responsavel="Saulo">
+              <td style="font-weight:600">Farmaceutica Central</td>
+              <td style="font-family:monospace;font-size:12px">22.333.444/0001-55</td>
+              <td>Farmaceutico</td>
+              <td><span class="badge badge-yellow"><span class="badge-dot yellow"></span>Prospect</span></td>
+              <td>Guarulhos/SP</td>
+              <td>Saulo</td>
+              <td style="color:var(--grey)">R$ 0</td>
+              <td style="color:var(--grey)">&mdash;</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Prospect" data-segmento="Ceramica" data-estado="SP" data-responsavel="Santiago">
+              <td style="font-weight:600">Ceramica Premium</td>
+              <td style="font-family:monospace;font-size:12px">55.666.777/0001-88</td>
+              <td>Ceramica</td>
+              <td><span class="badge badge-yellow"><span class="badge-dot yellow"></span>Prospect</span></td>
+              <td>Santa Gertrudes/SP</td>
+              <td>Santiago</td>
+              <td style="color:var(--grey)">R$ 0</td>
+              <td style="color:var(--grey)">&mdash;</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Com Oportunidade" data-segmento="Vidro" data-estado="SP" data-responsavel="Saulo">
+              <td style="font-weight:600">Vidros Temperados BR</td>
+              <td style="font-family:monospace;font-size:12px">33.444.555/0001-22</td>
+              <td>Vidro</td>
+              <td><span class="badge badge-blue"><span class="badge-dot blue"></span>Com Oportunidade</span></td>
+              <td>Jacareí/SP</td>
+              <td>Saulo</td>
+              <td style="font-weight:600">R$ 450.000</td>
+              <td>05/06/2025</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Prospect" data-segmento="Plasticos" data-estado="AM" data-responsavel="Lilian">
+              <td style="font-weight:600">Plasticos Premium</td>
+              <td style="font-family:monospace;font-size:12px">66.777.888/0001-33</td>
+              <td>Plasticos</td>
+              <td><span class="badge badge-yellow"><span class="badge-dot yellow"></span>Prospect</span></td>
+              <td>Manaus/AM</td>
+              <td>Lilian</td>
+              <td style="color:var(--grey)">R$ 0</td>
+              <td style="color:var(--grey)">&mdash;</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Com Oportunidade" data-segmento="Papel/Celulose" data-estado="PR" data-responsavel="Mariana">
+              <td style="font-weight:600">Ind. Papel Parana</td>
+              <td style="font-family:monospace;font-size:12px">88.999.000/0001-66</td>
+              <td>Papel/Celulose</td>
+              <td><span class="badge badge-blue"><span class="badge-dot blue"></span>Com Oportunidade</span></td>
+              <td>Curitiba/PR</td>
+              <td>Mariana</td>
+              <td style="font-weight:600">R$ 670.000</td>
+              <td>30/09/2025</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Prospect" data-segmento="Siderurgico" data-estado="RJ" data-responsavel="Saulo">
+              <td style="font-weight:600">Metalworks Rio</td>
+              <td style="font-family:monospace;font-size:12px">99.000.111/0001-99</td>
+              <td>Siderurgico</td>
+              <td><span class="badge badge-yellow"><span class="badge-dot yellow"></span>Prospect</span></td>
+              <td>Rio de Janeiro/RJ</td>
+              <td>Saulo</td>
+              <td style="color:var(--grey)">R$ 0</td>
+              <td style="color:var(--grey)">&mdash;</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+            <tr data-status="Com Oportunidade" data-segmento="Petroquimico" data-estado="SP" data-responsavel="Lilian">
+              <td style="font-weight:600">Petroquimica Santos</td>
+              <td style="font-family:monospace;font-size:12px">10.111.222/0001-00</td>
+              <td>Petroquimico</td>
+              <td><span class="badge badge-blue"><span class="badge-dot blue"></span>Com Oportunidade</span></td>
+              <td>Santos/SP</td>
+              <td>Lilian</td>
+              <td style="font-weight:600">R$ 2.100.000</td>
+              <td>14/12/2025</td>
+              <td><button class="btn-icon" onclick="showDetail()" title="Ver detalhes"><span class="material-icons-outlined" style="font-size:18px">visibility</span></button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span>Mostrando <strong>1-12</strong> de <strong>156</strong></span>
+        <div class="pagination-pages">
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">...</button>
+          <button class="page-btn">13</button>
+          <button class="page-btn"><span class="material-icons-outlined" style="font-size:16px">chevron_right</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DETAIL 360 VIEW ===== -->
+  <div class="content detail-view" id="detailView">
+
+    <a class="back-link" onclick="showList()">
+      <span class="material-icons-outlined">arrow_back</span> Voltar para lista
+    </a>
+
+    <!-- DETAIL HEADER -->
+    <div class="detail-header">
+      <div class="detail-header-top">
+        <div class="detail-header-info">
+          <div class="company-name">AutoParts Brasil</div>
+          <div class="company-razao">AutoParts do Brasil Industria e Comercio Ltda.</div>
+          <div class="detail-meta">
+            <span class="detail-meta-item"><span class="material-icons-outlined">badge</span> CNPJ: 12.345.678/0001-90</span>
+            <span class="badge badge-green" style="font-size:12px"><span class="badge-dot green"></span>Cliente Ativo</span>
+            <span class="badge badge-purple" style="font-size:12px">Automotivo</span>
+            <span class="detail-meta-item"><span class="material-icons-outlined">person</span> Mariana Constantinou</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary"><span class="material-icons-outlined">edit</span> Editar</button>
+          <button class="btn btn-primary"><span class="material-icons-outlined">call</span> Contatar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL KPIs -->
+    <div class="kpi-grid" style="margin-bottom:24px">
+      <div class="kpi-card green">
+        <div class="kpi-header"><span class="material-icons-outlined">payments</span></div>
+        <div class="kpi-value">R$ 1.250K</div>
+        <div class="kpi-label">Valor Total Comprado</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-header"><span class="material-icons-outlined">event</span></div>
+        <div class="kpi-value">15/01/2026</div>
+        <div class="kpi-label">Ultima Compra</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-header"><span class="material-icons-outlined">trending_up</span></div>
+        <div class="kpi-value">2 <span style="font-size:14px;font-weight:500;color:var(--grey)">(R$ 1.090K)</span></div>
+        <div class="kpi-label">Oportunidades Abertas</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-header"><span class="material-icons-outlined">place</span></div>
+        <div class="kpi-value">8</div>
+        <div class="kpi-label">Visitas Realizadas</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" id="detailTabs">
+      <button class="tab-btn active" data-tab="dados">Dados</button>
+      <button class="tab-btn" data-tab="contatos">Contatos <span class="tab-count">4</span></button>
+      <button class="tab-btn" data-tab="leads">Leads <span class="tab-count">3</span></button>
+      <button class="tab-btn" data-tab="oportunidades">Oportunidades <span class="tab-count">2</span></button>
+      <button class="tab-btn" data-tab="visitas">Visitas <span class="tab-count">8</span></button>
+      <button class="tab-btn" data-tab="propostas">Propostas <span class="tab-count">5</span></button>
+      <button class="tab-btn" data-tab="historico">Historico</button>
+    </div>
+
+    <!-- TAB: DADOS -->
+    <div class="tab-panel active" id="tab-dados">
+      <div class="fields-grid">
+        <div class="field-row">
+          <div class="field-label">Nome Fantasia</div>
+          <div class="field-value">AutoParts Brasil</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Razao Social</div>
+          <div class="field-value">AutoParts do Brasil Ind. e Com. Ltda.</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">CNPJ</div>
+          <div class="field-value" style="font-family:monospace">12.345.678/0001-90 <button class="btn-enrich"><span class="material-icons-outlined" style="font-size:14px">auto_fix_high</span> Enriquecer CNPJ</button></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Segmento</div>
+          <div class="field-value"><span class="badge badge-purple">Automotivo</span></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">N Funcionarios</div>
+          <div class="field-value">500-1000</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">N Plantas</div>
+          <div class="field-value">3</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Distancia ARV</div>
+          <div class="field-value">85 km</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Cidade</div>
+          <div class="field-value">Campinas</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Estado</div>
+          <div class="field-value">SP</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">CEP</div>
+          <div class="field-value" style="font-family:monospace">13050-100</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Telefone</div>
+          <div class="field-value">(19) 3232-5500</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Site</div>
+          <div class="field-value"><a href="#">www.autopartsbrasil.com.br</a></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Data Cadastro</div>
+          <div class="field-value">15/03/2024</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Status</div>
+          <div class="field-value"><span class="badge badge-green"><span class="badge-dot green"></span>Cliente Ativo</span></div>
+        </div>
+        <div class="field-row field-full">
+          <div class="field-label">Observacoes</div>
+          <div class="field-value">Grupo com 3 plantas no interior de SP. Principal contato e Carlos Silva (Gerente de Engenharia).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CONTATOS -->
+    <div class="tab-panel" id="tab-contatos">
+      <div class="table-wrap">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Cargo</th>
+                <th>Departamento</th>
+                <th>Influencia</th>
+                <th>WhatsApp</th>
+                <th>E-mail</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600">Carlos Silva</td>
+                <td>Gerente Eng.</td>
+                <td>Engenharia</td>
+                <td><span class="influence"><span class="influence-dot decisor"></span> Decisor</span></td>
+                <td>(19) 99887-6655</td>
+                <td><a href="mailto:carlos@autopbr.com" style="color:var(--monday-blue);text-decoration:none">carlos@autopbr.com</a></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">Ana Souza</td>
+                <td>Coord. Compras</td>
+                <td>Suprimentos</td>
+                <td><span class="influence"><span class="influence-dot influenciador"></span> Influenciador</span></td>
+                <td>(19) 99776-5544</td>
+                <td><a href="mailto:ana@autopbr.com" style="color:var(--monday-blue);text-decoration:none">ana@autopbr.com</a></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">Roberto Lima</td>
+                <td>Eng. Processo</td>
+                <td>Engenharia</td>
+                <td><span class="influence"><span class="influence-dot operacional"></span> Operacional</span></td>
+                <td>(19) 99665-4433</td>
+                <td><a href="mailto:roberto@autopbr.com" style="color:var(--monday-blue);text-decoration:none">roberto@autopbr.com</a></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">Fernanda Dias</td>
+                <td>Diretora Ind.</td>
+                <td>Diretoria</td>
+                <td><span class="influence"><span class="influence-dot decisor"></span> Decisor</span></td>
+                <td>(19) 99554-3322</td>
+                <td><a href="mailto:fernanda@autopbr.com" style="color:var(--monday-blue);text-decoration:none">fernanda@autopbr.com</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: LEADS -->
+    <div class="tab-panel" id="tab-leads">
+      <div class="table-wrap">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Lead ID</th>
+                <th>Produto</th>
+                <th>Etapa</th>
+                <th>Valor</th>
+                <th>Data Entrada</th>
+                <th>Resultado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;font-family:monospace">L-0847</td>
+                <td>Celula Robotica</td>
+                <td><span class="badge badge-green">Qualificado</span></td>
+                <td style="font-weight:600">R$ 680K</td>
+                <td>27/02/2026</td>
+                <td><span class="badge badge-blue">Convertido &rarr; Oportunidade</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;font-family:monospace">L-0612</td>
+                <td>Retrofit PLC</td>
+                <td><span class="badge badge-green">Qualificado</span></td>
+                <td style="font-weight:600">R$ 310K</td>
+                <td>15/08/2025</td>
+                <td><span class="badge badge-green">Convertido &rarr; Venda</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;font-family:monospace">L-0298</td>
+                <td>Integracao SCADA</td>
+                <td><span class="badge badge-red">Descartado</span></td>
+                <td style="font-weight:600">R$ 180K</td>
+                <td>10/01/2025</td>
+                <td><span class="badge badge-grey">Sem budget</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: OPORTUNIDADES -->
+    <div class="tab-panel" id="tab-oportunidades">
+      <div class="table-wrap">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Projeto</th>
+                <th>Etapa</th>
+                <th>Valor</th>
+                <th>Probabilidade</th>
+                <th>Vendedor</th>
+                <th>Prev. Fechamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600">Celula Robotica</td>
+                <td><span class="badge badge-blue">Dev. Proposta</span></td>
+                <td style="font-weight:600">R$ 680K</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="flex:1;max-width:80px;height:6px;background:#e5e5e5;border-radius:3px;overflow:hidden">
+                      <div style="width:60%;height:100%;background:var(--monday-blue);border-radius:3px"></div>
+                    </div>
+                    <span style="font-weight:600;font-size:12px">60%</span>
+                  </div>
+                </td>
+                <td>Mariana</td>
+                <td>15/04/2026</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">Automacao Pintura</td>
+                <td><span class="badge badge-yellow">Qualif. Oport.</span></td>
+                <td style="font-weight:600">R$ 410K</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="flex:1;max-width:80px;height:6px;background:#e5e5e5;border-radius:3px;overflow:hidden">
+                      <div style="width:35%;height:100%;background:var(--monday-yellow);border-radius:3px"></div>
+                    </div>
+                    <span style="font-weight:600;font-size:12px">35%</span>
+                  </div>
+                </td>
+                <td>Mariana</td>
+                <td>30/05/2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: VISITAS -->
+    <div class="tab-panel" id="tab-visitas">
+      <div class="table-wrap">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Perfil</th>
+                <th>Vendedor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600">10/03/2026</td>
+                <td>Alinhamento Tecnico</td>
+                <td>Mariana + David</td>
+                <td><span class="badge badge-green">Concluida</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">25/02/2026</td>
+                <td>Pre Vendas</td>
+                <td>Mariana</td>
+                <td><span class="badge badge-green">Concluida</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">15/01/2026</td>
+                <td>FUP Proposta</td>
+                <td>Mariana</td>
+                <td><span class="badge badge-green">Concluida</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">02/12/2025</td>
+                <td>Apresentacao Tecnica</td>
+                <td>Mariana + Santiago</td>
+                <td><span class="badge badge-green">Concluida</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">18/10/2025</td>
+                <td>Levantamento Planta</td>
+                <td>Mariana</td>
+                <td><span class="badge badge-green">Concluida</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PROPOSTAS -->
+    <div class="tab-panel" id="tab-propostas">
+      <div class="table-wrap">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>N</th>
+                <th>Projeto</th>
+                <th>Valor</th>
+                <th>Rev.</th>
+                <th>Status</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;font-family:monospace">ORC-2026-052</td>
+                <td>Celula Robotica</td>
+                <td style="font-weight:600">R$ 680K</td>
+                <td><span class="badge badge-grey">v3</span></td>
+                <td><span class="badge badge-yellow">Em Elaboracao</span></td>
+                <td>12/03/2026</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;font-family:monospace">ORC-2025-089</td>
+                <td>Retrofit PLC</td>
+                <td style="font-weight:600">R$ 310K</td>
+                <td><span class="badge badge-grey">v2</span></td>
+                <td><span class="badge badge-green">Aceita</span></td>
+                <td>20/09/2025</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;font-family:monospace">ORC-2025-045</td>
+                <td>Retrofit PLC</td>
+                <td style="font-weight:600">R$ 340K</td>
+                <td><span class="badge badge-grey">v1</span></td>
+                <td><span class="badge badge-grey">Substituida</span></td>
+                <td>01/09/2025</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;font-family:monospace">ORC-2025-032</td>
+                <td>Integracao SCADA</td>
+                <td style="font-weight:600">R$ 180K</td>
+                <td><span class="badge badge-grey">v1</span></td>
+                <td><span class="badge badge-red">Perdida</span></td>
+                <td>15/06/2025</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;font-family:monospace">ORC-2024-098</td>
+                <td>Automacao Esteira</td>
+                <td style="font-weight:600">R$ 250K</td>
+                <td><span class="badge badge-grey">v2</span></td>
+                <td><span class="badge badge-green">Aceita</span></td>
+                <td>10/11/2024</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: HISTORICO -->
+    <div class="tab-panel" id="tab-historico">
+      <div style="background:var(--white);border-radius:var(--radius);padding:28px 32px;box-shadow:var(--shadow-sm)">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-date">12/03/2026</div>
+            <div class="timeline-text">Proposta <strong>ORC-2026-052 v3</strong> criada para projeto Celula Robotica</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot green"></div>
+            <div class="timeline-date">10/03/2026</div>
+            <div class="timeline-text">Visita de Alinhamento Tecnico realizada por Mariana + David</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot purple"></div>
+            <div class="timeline-date">27/02/2026</div>
+            <div class="timeline-text">Novo lead <strong>L-0847</strong> convertido em oportunidade &mdash; Celula Robotica R$ 680K</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-date">25/02/2026</div>
+            <div class="timeline-text">Visita de Pre Vendas realizada por Mariana</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-date">15/01/2026</div>
+            <div class="timeline-text">Visita de FUP Proposta realizada por Mariana</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot green"></div>
+            <div class="timeline-date">20/09/2025</div>
+            <div class="timeline-text">Proposta <strong>ORC-2025-089</strong> aceita &mdash; <span class="highlight">VENDA R$ 310K</span></div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot purple"></div>
+            <div class="timeline-date">15/08/2025</div>
+            <div class="timeline-text">Lead <strong>L-0612</strong> qualificado e convertido em oportunidade</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot red"></div>
+            <div class="timeline-date">15/06/2025</div>
+            <div class="timeline-text">Proposta <strong>ORC-2025-032</strong> perdida &mdash; Integracao SCADA (sem budget)</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-date">10/01/2025</div>
+            <div class="timeline-text">Lead <strong>L-0298</strong> descartado &mdash; Integracao SCADA sem budget disponivel</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot green"></div>
+            <div class="timeline-date">10/11/2024</div>
+            <div class="timeline-text">Proposta <strong>ORC-2024-098</strong> aceita &mdash; <span class="highlight">VENDA R$ 250K</span> Automacao Esteira</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot yellow"></div>
+            <div class="timeline-date">15/03/2024</div>
+            <div class="timeline-text">Empresa <strong>AutoParts Brasil</strong> cadastrada no CRM por Bruno</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /detail-view -->
+
+</div><!-- /main -->
+
+<script>
+// ===== VIEW TOGGLE =====
+function showDetail() {
+  document.getElementById('listView').classList.remove('active');
+  document.getElementById('detailView').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showList() {
+  document.getElementById('detailView').classList.remove('active');
+  document.getElementById('listView').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ===== STATUS FILTER =====
+const statusPills = document.querySelectorAll('#statusFilter .filter-pill');
+const tableRows = document.querySelectorAll('#empresasTable tbody tr');
+
+statusPills.forEach(pill => {
+  pill.addEventListener('click', () => {
+    statusPills.forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    applyFilters();
+  });
+});
+
+// ===== DROPDOWN FILTERS =====
+document.getElementById('segmentoFilter').addEventListener('change', applyFilters);
+document.getElementById('estadoFilter').addEventListener('change', applyFilters);
+document.getElementById('responsavelFilter').addEventListener('change', applyFilters);
+
+function applyFilters() {
+  const activeStatus = document.querySelector('#statusFilter .filter-pill.active').dataset.status;
+  const segmento = document.getElementById('segmentoFilter').value;
+  const estado = document.getElementById('estadoFilter').value;
+  const responsavel = document.getElementById('responsavelFilter').value;
+
+  tableRows.forEach(row => {
+    let show = true;
+    if (activeStatus !== 'all' && row.dataset.status !== activeStatus) show = false;
+    if (segmento && row.dataset.segmento !== segmento) show = false;
+    if (estado && row.dataset.estado !== estado) show = false;
+    if (responsavel && row.dataset.responsavel !== responsavel) show = false;
+    row.style.display = show ? '' : 'none';
+  });
+}
+
+// ===== TABS =====
+const tabBtns = document.querySelectorAll('#detailTabs .tab-btn');
+const tabPanels = document.querySelectorAll('.tab-panel');
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    tabPanels.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== SEARCH =====
+document.querySelector('.topbar-search input').addEventListener('input', function() {
+  const query = this.value.toLowerCase();
+  tableRows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(query) ? '' : 'none';
+  });
+});
+</script>
+
+</body>
+</html>

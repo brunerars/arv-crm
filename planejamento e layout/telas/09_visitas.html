@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visitas — ARV CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --almost-black: #111111;
+    --white: #ffffff;
+    --whitesmoke: #f5f5f5;
+    --dark-grey: #5d5d5d;
+    --grey: #9f9f9f;
+    --light-grey: #d1d1d1;
+    --red: #c82a2a;
+    --monday-purple: #6161ff;
+    --monday-blue: #0073ea;
+    --monday-green: #00ca72;
+    --monday-yellow: #ffcb00;
+    --monday-red: #e44258;
+    --monday-orange: #ff7575;
+    --brown: #795548;
+    --radius: 8px;
+    --radius-pill: 9999px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+    --shadow-md: 0 4px 16px rgba(0,0,0,.1);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.15);
+  }
+
+  body {
+    font-family: 'Inter Tight', sans-serif;
+    background: var(--whitesmoke);
+    color: var(--almost-black);
+    min-height: 100vh;
+    display: flex;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: var(--almost-black);
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 22px 28px;
+  }
+
+  .sidebar-logo .logo-icon {
+    width: 28px; height: 28px;
+    background: var(--red);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .sidebar-logo .logo-icon .material-icons-outlined { font-size: 16px; color: var(--white); }
+
+  .sidebar-logo span {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -.3px;
+  }
+
+  .sidebar-nav { flex: 1; padding: 0 12px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    color: rgba(255,255,255,.5);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    text-decoration: none;
+    position: relative;
+    margin-bottom: 2px;
+  }
+
+  .nav-item:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.06); }
+
+  .nav-item.active {
+    color: var(--white);
+    background: rgba(255,255,255,.08);
+    border-left: 3px solid var(--red);
+    margin-left: -3px;
+    padding-left: 17px;
+  }
+
+  .nav-item .material-icons-outlined { font-size: 20px; }
+
+  .nav-sub {
+    padding-left: 46px;
+    margin-bottom: 2px;
+  }
+
+  .nav-sub .nav-item {
+    font-size: 13px;
+    padding: 7px 14px;
+    color: rgba(255,255,255,.4);
+  }
+
+  .nav-separator {
+    height: 1px;
+    background: rgba(255,255,255,.08);
+    margin: 14px 14px;
+  }
+
+  .sidebar-user {
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+
+  .sidebar-user .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; color: var(--white);
+  }
+
+  .sidebar-user .user-info { display: flex; flex-direction: column; }
+  .sidebar-user .user-info .name { font-size: 13px; font-weight: 600; color: var(--white); }
+  .sidebar-user .user-info .role { font-size: 11px; color: rgba(255,255,255,.4); }
+
+  /* ─── MAIN ─── */
+  .main-wrapper {
+    margin-left: 260px;
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    height: 60px;
+    background: var(--white);
+    border-bottom: 1px solid var(--light-grey);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 24px; }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--grey);
+  }
+
+  .breadcrumb span.current { color: var(--almost-black); font-weight: 600; }
+
+  .view-toggle {
+    display: flex;
+    background: var(--whitesmoke);
+    border-radius: var(--radius);
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .view-toggle button {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--dark-grey);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .view-toggle button.active {
+    background: var(--white);
+    color: var(--almost-black);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .view-toggle button:hover:not(.active) { color: var(--almost-black); }
+
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+
+  .month-nav {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .month-nav .month-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--almost-black);
+    min-width: 140px;
+    text-align: center;
+  }
+
+  .month-nav button {
+    width: 32px; height: 32px;
+    border: 1px solid var(--light-grey);
+    border-radius: var(--radius);
+    background: var(--white);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+    color: var(--dark-grey);
+  }
+
+  .month-nav button:hover {
+    border-color: var(--almost-black);
+    color: var(--almost-black);
+  }
+
+  .month-nav button .material-icons-outlined { font-size: 18px; }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 20px; height: 38px;
+    background: var(--almost-black);
+    color: var(--white);
+    border: none; border-radius: var(--radius-pill);
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+
+  .btn-primary:hover { background: #2a2a2a; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-primary .material-icons-outlined { font-size: 18px; }
+
+  /* ─── CONTENT ─── */
+  .content { padding: 28px 32px 40px; flex: 1; }
+
+  /* ─── FILTER BAR ─── */
+  .filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dark-grey);
+    min-width: 65px;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+  }
+
+  .filter-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-pill {
+    padding: 5px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--light-grey);
+    background: var(--white);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--dark-grey);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .filter-pill:hover { border-color: var(--almost-black); color: var(--almost-black); }
+
+  .filter-pill.active {
+    background: var(--almost-black);
+    color: var(--white);
+    border-color: var(--almost-black);
+  }
+
+  /* ─── KPI CARDS ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .kpi-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+    border-top: 3px solid transparent;
+    transition: transform .15s, box-shadow .15s;
+  }
+
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+  .kpi-card.yellow { border-top-color: var(--monday-yellow); }
+  .kpi-card.green { border-top-color: var(--monday-green); }
+  .kpi-card.red { border-top-color: var(--monday-red); }
+  .kpi-card.blue { border-top-color: var(--monday-blue); }
+
+  .kpi-card .kpi-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--grey);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    margin-bottom: 8px;
+  }
+
+  .kpi-card .kpi-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--almost-black);
+    letter-spacing: -.5px;
+    line-height: 1;
+  }
+
+  .kpi-card .kpi-sub {
+    font-size: 11.5px;
+    color: var(--grey);
+    margin-top: 6px;
+  }
+
+  /* ─── CALENDAR GRID (MONTH) ─── */
+  .calendar-month {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .cal-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid var(--light-grey);
+  }
+
+  .cal-header .cal-day-name {
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--grey);
+  }
+
+  .cal-header .cal-day-name:first-child,
+  .cal-header .cal-day-name:last-child { color: var(--light-grey); }
+
+  .cal-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  .cal-cell {
+    min-height: 120px;
+    border: 1px solid var(--light-grey);
+    border-top: none;
+    border-left: none;
+    padding: 6px 8px;
+    position: relative;
+    transition: background .15s;
+  }
+
+  .cal-cell:nth-child(7n+1) { border-left: none; }
+  .cal-cell:nth-child(7n) { border-right: none; }
+  .cal-cell:nth-child(-n+7) { border-top: none; }
+
+  .cal-cell.weekend { background: #fafafa; }
+  .cal-cell.today { background: rgba(0,115,234,.04); }
+  .cal-cell.empty { background: var(--whitesmoke); opacity: .5; }
+
+  .cal-cell .day-number {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dark-grey);
+    margin-bottom: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+  }
+
+  .cal-cell.today .day-number {
+    background: var(--monday-blue);
+    color: var(--white);
+  }
+
+  .cal-event {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 500;
+    margin-bottom: 3px;
+    cursor: pointer;
+    transition: all .15s;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cal-event:hover { transform: scale(1.02); box-shadow: var(--shadow-sm); }
+
+  .cal-event.pre-vendas { background: rgba(0,202,114,.12); color: #00874c; border-left: 3px solid var(--monday-green); }
+  .cal-event.fup-proposta { background: rgba(255,203,0,.12); color: #9a7b00; border-left: 3px solid var(--monday-yellow); }
+  .cal-event.nps { background: rgba(228,66,88,.12); color: #b42840; border-left: 3px solid var(--monday-red); }
+  .cal-event.reativacao { background: rgba(0,115,234,.12); color: #005bb5; border-left: 3px solid var(--monday-blue); }
+  .cal-event.prospeccao { background: rgba(97,97,255,.12); color: #4a4acc; border-left: 3px solid var(--monday-purple); }
+  .cal-event.alin-tecnico { background: rgba(121,85,72,.12); color: #5d4037; border-left: 3px solid var(--brown); }
+  .cal-event.cross-sell { background: rgba(255,117,117,.12); color: #cc4040; border-left: 3px solid var(--monday-orange); }
+
+  .cal-event.concluida { opacity: .65; }
+  .cal-event.concluida::after { content: " \2713"; font-weight: 700; }
+  .cal-event.cancelada { opacity: .5; text-decoration: line-through; color: var(--grey) !important; background: rgba(0,0,0,.04) !important; border-left-color: var(--grey) !important; }
+  .cal-event.cancelada::after { content: " \2717"; font-weight: 700; }
+
+  .cal-event.tomorrow {
+    animation: pulse-event 2s ease-in-out infinite;
+    font-weight: 600;
+  }
+
+  @keyframes pulse-event {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,203,0,.3); }
+    50% { box-shadow: 0 0 0 4px rgba(255,203,0,.1); }
+  }
+
+  /* ─── WEEK VIEW ─── */
+  .week-view { display: none; }
+  .week-view.active { display: block; }
+
+  .week-grid-wrapper {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .week-header {
+    display: grid;
+    grid-template-columns: 70px repeat(6, 1fr);
+    border-bottom: 1px solid var(--light-grey);
+  }
+
+  .week-header .wh-cell {
+    padding: 14px 10px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dark-grey);
+  }
+
+  .week-header .wh-cell:first-child {
+    background: var(--whitesmoke);
+    font-size: 11px;
+    color: var(--grey);
+  }
+
+  .week-header .wh-cell.today-col {
+    background: rgba(0,115,234,.06);
+    color: var(--monday-blue);
+    font-weight: 700;
+  }
+
+  .week-body {
+    display: grid;
+    grid-template-columns: 70px repeat(6, 1fr);
+    position: relative;
+  }
+
+  .week-time-col {
+    display: flex;
+    flex-direction: column;
+    background: var(--whitesmoke);
+  }
+
+  .week-time-slot {
+    height: 60px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--grey);
+    border-bottom: 1px solid rgba(0,0,0,.04);
+  }
+
+  .week-day-col {
+    position: relative;
+    border-left: 1px solid var(--light-grey);
+  }
+
+  .week-day-col .week-slot {
+    height: 60px;
+    border-bottom: 1px solid rgba(0,0,0,.04);
+  }
+
+  .week-event {
+    position: absolute;
+    left: 4px; right: 4px;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    border-left: 3px solid;
+    transition: all .15s;
+    overflow: hidden;
+    z-index: 2;
+  }
+
+  .week-event:hover { transform: scale(1.02); box-shadow: var(--shadow-md); z-index: 3; }
+
+  .week-event .we-title { font-weight: 600; font-size: 11.5px; margin-bottom: 2px; }
+  .week-event .we-time { font-size: 10px; opacity: .7; }
+  .week-event .we-vendor { font-size: 10px; opacity: .6; margin-top: 2px; }
+
+  .week-event.pre-vendas { background: rgba(0,202,114,.12); border-left-color: var(--monday-green); color: #00874c; }
+  .week-event.fup-proposta { background: rgba(255,203,0,.12); border-left-color: var(--monday-yellow); color: #9a7b00; }
+  .week-event.alin-tecnico { background: rgba(121,85,72,.12); border-left-color: var(--brown); color: #5d4037; }
+
+  /* ─── LIST VIEW ─── */
+  .list-view { display: none; }
+  .list-view.active { display: block; }
+
+  .list-table-wrapper {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .list-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .list-table thead th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--grey);
+    background: var(--whitesmoke);
+    border-bottom: 1px solid var(--light-grey);
+  }
+
+  .list-table tbody tr {
+    transition: background .1s;
+    border-bottom: 1px solid rgba(0,0,0,.04);
+  }
+
+  .list-table tbody tr:hover { background: rgba(0,115,234,.02); }
+
+  .list-table tbody td {
+    padding: 13px 16px;
+    font-size: 13px;
+    color: var(--almost-black);
+  }
+
+  .profile-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .profile-badge.pre-vendas { background: rgba(0,202,114,.12); color: #00874c; }
+  .profile-badge.fup-proposta { background: rgba(255,203,0,.12); color: #9a7b00; }
+  .profile-badge.nps { background: rgba(228,66,88,.12); color: #b42840; }
+  .profile-badge.reativacao { background: rgba(0,115,234,.12); color: #005bb5; }
+  .profile-badge.prospeccao { background: rgba(97,97,255,.12); color: #4a4acc; }
+  .profile-badge.alin-tecnico { background: rgba(121,85,72,.12); color: #5d4037; }
+  .profile-badge.cross-sell { background: rgba(255,117,117,.12); color: #cc4040; }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+
+  .status-badge.agendada { background: rgba(255,203,0,.15); color: #9a7b00; }
+  .status-badge.concluida { background: rgba(0,202,114,.15); color: #00874c; }
+  .status-badge.cancelada { background: rgba(228,66,88,.15); color: #b42840; }
+
+  .action-btn {
+    width: 30px; height: 30px;
+    border: 1px solid var(--light-grey);
+    border-radius: 6px;
+    background: var(--white);
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .15s;
+    color: var(--dark-grey);
+  }
+
+  .action-btn:hover { border-color: var(--almost-black); color: var(--almost-black); }
+  .action-btn .material-icons-outlined { font-size: 16px; }
+
+  .actions-cell { display: flex; gap: 6px; }
+
+  /* ─── LEGEND ─── */
+  .legend-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 24px;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--dark-grey);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--white);
+    border-radius: 12px;
+    width: 480px;
+    max-width: 90vw;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: modal-in .2s ease-out;
+  }
+
+  @keyframes modal-in {
+    from { opacity: 0; transform: translateY(20px) scale(.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--light-grey);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .modal-close {
+    width: 32px; height: 32px;
+    border: none; border-radius: 6px;
+    background: var(--whitesmoke);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--dark-grey);
+    transition: all .15s;
+  }
+
+  .modal-close:hover { background: var(--light-grey); }
+  .modal-close .material-icons-outlined { font-size: 18px; }
+
+  .modal-body { padding: 24px; }
+
+  .modal-row {
+    display: flex;
+    margin-bottom: 16px;
+    gap: 8px;
+  }
+
+  .modal-row .mr-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--grey);
+    min-width: 120px;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    padding-top: 2px;
+  }
+
+  .modal-row .mr-value {
+    font-size: 13.5px;
+    color: var(--almost-black);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .modal-row .mr-value .profile-badge { font-size: 12px; }
+
+  .modal-row:last-child { margin-bottom: 0; }
+
+  .obs-box {
+    background: var(--whitesmoke);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--dark-grey);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1200px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--light-grey); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><span class="material-icons-outlined">precision_manufacturing</span></div>
+    <span>ARV Systems</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item"><span class="material-icons-outlined">dashboard</span> Dashboard</div>
+    <div class="nav-item"><span class="material-icons-outlined">view_kanban</span> Pipeline</div>
+    <div class="nav-sub">
+      <div class="nav-item">Pré Vendas</div>
+      <div class="nav-item">Vendas</div>
+    </div>
+    <div class="nav-item"><span class="material-icons-outlined">business</span> Empresas</div>
+    <div class="nav-item"><span class="material-icons-outlined">contacts</span> Contatos</div>
+    <div class="nav-item"><span class="material-icons-outlined">description</span> Propostas & Orçamentos</div>
+    <div class="nav-item active"><span class="material-icons-outlined">event</span> Visitas</div>
+    <div class="nav-item"><span class="material-icons-outlined">trending_up</span> Metas de Vendas</div>
+    <div class="nav-item"><span class="material-icons-outlined">analytics</span> Dashboard de Funil</div>
+    <div class="nav-separator"></div>
+    <div class="nav-item"><span class="material-icons-outlined">settings</span> Configurações</div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar">B</div>
+    <div class="user-info">
+      <span class="name">Bruno</span>
+      <span class="role">Administrador</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ─── MAIN ─── -->
+<div class="main-wrapper">
+
+  <!-- ─── TOPBAR ─── -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb">CRM <span style="margin:0 2px">/</span> <span class="current">Visitas</span></div>
+      <div class="view-toggle">
+        <button class="active" data-view="month" onclick="switchView('month')">Mês</button>
+        <button data-view="week" onclick="switchView('week')">Semana</button>
+        <button data-view="list" onclick="switchView('list')">Lista</button>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="month-nav">
+        <button onclick="navMonth(-1)"><span class="material-icons-outlined">chevron_left</span></button>
+        <span class="month-label" id="monthLabel">Março 2026</span>
+        <button onclick="navMonth(1)"><span class="material-icons-outlined">chevron_right</span></button>
+      </div>
+      <button class="btn-primary"><span class="material-icons-outlined">add</span> Nova Visita</button>
+    </div>
+  </header>
+
+  <!-- ─── CONTENT ─── -->
+  <div class="content">
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+      <div class="filter-row">
+        <span class="filter-label">Vendedor</span>
+        <div class="filter-pills" data-filter="vendedor">
+          <button class="filter-pill active" data-value="todos">Todos</button>
+          <button class="filter-pill" data-value="mariana">Mariana</button>
+          <button class="filter-pill" data-value="saulo">Saulo</button>
+          <button class="filter-pill" data-value="lilian">Lilian</button>
+          <button class="filter-pill" data-value="santiago">Santiago</button>
+          <button class="filter-pill" data-value="gabriel">Gabriel</button>
+        </div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Perfil</span>
+        <div class="filter-pills" data-filter="perfil">
+          <button class="filter-pill active" data-value="todos">Todos</button>
+          <button class="filter-pill" data-value="pre-vendas">Pré Vendas</button>
+          <button class="filter-pill" data-value="fup-proposta">FUP Proposta</button>
+          <button class="filter-pill" data-value="nps">NPS</button>
+          <button class="filter-pill" data-value="reativacao">Reativação</button>
+          <button class="filter-pill" data-value="prospeccao">Prospecção</button>
+          <button class="filter-pill" data-value="alin-tecnico">Alin. Técnico</button>
+          <button class="filter-pill" data-value="cross-sell">Cross Sell</button>
+        </div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Status</span>
+        <div class="filter-pills" data-filter="status">
+          <button class="filter-pill active" data-value="todos">Todos</button>
+          <button class="filter-pill" data-value="agendada">Agendada</button>
+          <button class="filter-pill" data-value="concluida">Concluída</button>
+          <button class="filter-pill" data-value="cancelada">Cancelada</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card yellow">
+        <div class="kpi-label">Agendadas</div>
+        <div class="kpi-value">8</div>
+        <div class="kpi-sub">visitas este mês</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Concluídas (mês)</div>
+        <div class="kpi-value">12</div>
+        <div class="kpi-sub">visitas realizadas</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Canceladas (mês)</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub">visitas canceladas</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">Taxa Realização</div>
+        <div class="kpi-value">86%</div>
+        <div class="kpi-sub">concluídas / total</div>
+      </div>
+    </div>
+
+    <!-- ═══════ VIEW 1: MONTH CALENDAR ═══════ -->
+    <div class="month-view active" id="monthView">
+      <div class="calendar-month">
+        <div class="cal-header">
+          <div class="cal-day-name">Dom</div>
+          <div class="cal-day-name">Seg</div>
+          <div class="cal-day-name">Ter</div>
+          <div class="cal-day-name">Qua</div>
+          <div class="cal-day-name">Qui</div>
+          <div class="cal-day-name">Sex</div>
+          <div class="cal-day-name">Sáb</div>
+        </div>
+        <div class="cal-body">
+          <!-- Week 1 -->
+          <div class="cal-cell weekend"><span class="day-number">1</span></div>
+          <div class="cal-cell"><span class="day-number">2</span></div>
+          <div class="cal-cell" data-day="3"><span class="day-number">3</span>
+            <div class="cal-event pre-vendas concluida" data-perfil="pre-vendas" data-vendedor="lilian" data-status="concluida" onclick="openModal('textil-nordeste-c')">PV — Textil Nordeste</div>
+          </div>
+          <div class="cal-cell"><span class="day-number">4</span></div>
+          <div class="cal-cell" data-day="5"><span class="day-number">5</span>
+            <div class="cal-event fup-proposta concluida" data-perfil="fup-proposta" data-vendedor="mariana" data-status="concluida" onclick="openModal('alimentos-naturais')">FUP — Alim. Naturais</div>
+          </div>
+          <div class="cal-cell"><span class="day-number">6</span></div>
+          <div class="cal-cell weekend"><span class="day-number">7</span></div>
+
+          <!-- Week 2 -->
+          <div class="cal-cell weekend"><span class="day-number">8</span></div>
+          <div class="cal-cell"><span class="day-number">9</span></div>
+          <div class="cal-cell" data-day="10"><span class="day-number">10</span>
+            <div class="cal-event alin-tecnico concluida" data-perfil="alin-tecnico" data-vendedor="mariana" data-status="concluida" onclick="openModal('autoparts')">AT — AutoParts Brasil</div>
+            <div class="cal-event nps concluida" data-perfil="nps" data-vendedor="saulo" data-status="concluida" onclick="openModal('metalurgica')">NPS — Metalúrg. Gaúcha</div>
+          </div>
+          <div class="cal-cell"><span class="day-number">11</span></div>
+          <div class="cal-cell" data-day="12"><span class="day-number">12</span>
+            <div class="cal-event pre-vendas concluida" data-perfil="pre-vendas" data-vendedor="saulo" data-status="concluida" onclick="openModal('farmaceutica')">PV — Farmac. Central</div>
+          </div>
+          <div class="cal-cell"><span class="day-number">13</span></div>
+          <div class="cal-cell weekend" data-day="14"><span class="day-number">14</span>
+            <div class="cal-event prospeccao cancelada" data-perfil="prospeccao" data-vendedor="santiago" data-status="cancelada" onclick="openModal('ceramica')">Prosp — Cerâm. Premium</div>
+          </div>
+
+          <!-- Week 3 -->
+          <div class="cal-cell weekend"><span class="day-number">15</span></div>
+          <div class="cal-cell today"><span class="day-number">16</span></div>
+          <div class="cal-cell" data-day="17"><span class="day-number">17</span>
+            <div class="cal-event fup-proposta tomorrow" data-perfil="fup-proposta" data-vendedor="lilian" data-status="agendada" onclick="openModal('textil-nordeste')">FUP — Textil Nordeste 🏭</div>
+          </div>
+          <div class="cal-cell"><span class="day-number">18</span></div>
+          <div class="cal-cell" data-day="19"><span class="day-number">19</span>
+            <div class="cal-event pre-vendas" data-perfil="pre-vendas" data-vendedor="saulo" data-status="agendada" onclick="openModal('metalworks')">PV — Metalworks Rio 🏭</div>
+          </div>
+          <div class="cal-cell"><span class="day-number">20</span></div>
+          <div class="cal-cell weekend" data-day="21"><span class="day-number">21</span>
+            <div class="cal-event alin-tecnico" data-perfil="alin-tecnico" data-vendedor="lilian" data-status="agendada" onclick="openModal('siderurgica')">AT — Siderúrg. Nac. 🏭</div>
+          </div>
+
+          <!-- Week 4 -->
+          <div class="cal-cell weekend"><span class="day-number">22</span></div>
+          <div class="cal-cell"><span class="day-number">23</span></div>
+          <div class="cal-cell" data-day="24"><span class="day-number">24</span>
+            <div class="cal-event cross-sell" data-perfil="cross-sell" data-vendedor="santiago" data-status="agendada" onclick="openModal('vidros')">CS — Vidros Temp. 🏭</div>
+          </div>
+          <div class="cal-cell"><span class="day-number">25</span></div>
+          <div class="cal-cell" data-day="26"><span class="day-number">26</span>
+            <div class="cal-event reativacao" data-perfil="reativacao" data-vendedor="lilian" data-status="agendada" onclick="openModal('plasticos')">Reat — Plást. Premium 🏭</div>
+          </div>
+          <div class="cal-cell"><span class="day-number">27</span></div>
+          <div class="cal-cell weekend" data-day="28"><span class="day-number">28</span>
+            <div class="cal-event pre-vendas" data-perfil="pre-vendas" data-vendedor="mariana" data-status="agendada" onclick="openModal('petroquimica')">PV — Petroq. Santos 🏭</div>
+            <div class="cal-event fup-proposta" data-perfil="fup-proposta" data-vendedor="mariana" data-status="agendada" onclick="openModal('papel-parana')">FUP — Ind. Papel PR 🏭</div>
+          </div>
+
+          <!-- Week 5 -->
+          <div class="cal-cell weekend"><span class="day-number">29</span></div>
+          <div class="cal-cell"><span class="day-number">30</span></div>
+          <div class="cal-cell"><span class="day-number">31</span></div>
+          <div class="cal-cell empty"></div>
+          <div class="cal-cell empty"></div>
+          <div class="cal-cell empty"></div>
+          <div class="cal-cell empty"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ VIEW 2: WEEK VIEW ═══════ -->
+    <div class="week-view" id="weekView">
+      <div class="week-grid-wrapper">
+        <div class="week-header">
+          <div class="wh-cell">Hora</div>
+          <div class="wh-cell today-col">Seg 16</div>
+          <div class="wh-cell">Ter 17</div>
+          <div class="wh-cell">Qua 18</div>
+          <div class="wh-cell">Qui 19</div>
+          <div class="wh-cell">Sex 20</div>
+          <div class="wh-cell">Sáb 21</div>
+        </div>
+        <div class="week-body">
+          <!-- Time column -->
+          <div class="week-time-col">
+            <div class="week-time-slot">08:00</div>
+            <div class="week-time-slot">09:00</div>
+            <div class="week-time-slot">10:00</div>
+            <div class="week-time-slot">11:00</div>
+            <div class="week-time-slot">12:00</div>
+            <div class="week-time-slot">13:00</div>
+            <div class="week-time-slot">14:00</div>
+            <div class="week-time-slot">15:00</div>
+            <div class="week-time-slot">16:00</div>
+            <div class="week-time-slot">17:00</div>
+          </div>
+
+          <!-- Seg 16 (today) -->
+          <div class="week-day-col" style="background:rgba(0,115,234,.02);">
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div>
+          </div>
+
+          <!-- Ter 17 -->
+          <div class="week-day-col">
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div>
+            <!-- FUP Textil Nordeste 09:00-11:00 = slot 1 (09:00), height 2 slots -->
+            <div class="week-event fup-proposta" style="top:60px; height:120px;" data-perfil="fup-proposta" data-vendedor="lilian" data-status="agendada" onclick="openModal('textil-nordeste')">
+              <div class="we-title">FUP Textil Nordeste</div>
+              <div class="we-time">09:00 — 11:00</div>
+              <div class="we-vendor">Lilian Costa</div>
+            </div>
+          </div>
+
+          <!-- Qua 18 -->
+          <div class="week-day-col">
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div>
+          </div>
+
+          <!-- Qui 19 -->
+          <div class="week-day-col">
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div>
+            <!-- PV Metalworks Rio 09:30-12:00 = top 90px, height 150px -->
+            <div class="week-event pre-vendas" style="top:90px; height:150px;" data-perfil="pre-vendas" data-vendedor="saulo" data-status="agendada" onclick="openModal('metalworks')">
+              <div class="we-title">PV Metalworks Rio</div>
+              <div class="we-time">09:30 — 12:00</div>
+              <div class="we-vendor">Saulo Ribeiro</div>
+            </div>
+          </div>
+
+          <!-- Sex 20 -->
+          <div class="week-day-col">
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div>
+          </div>
+
+          <!-- Sáb 21 -->
+          <div class="week-day-col">
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div><div class="week-slot"></div><div class="week-slot"></div>
+            <div class="week-slot"></div>
+            <!-- AT Siderúrgica 14:00-16:00 = slot 6 (14:00), height 2 slots -->
+            <div class="week-event alin-tecnico" style="top:360px; height:120px;" data-perfil="alin-tecnico" data-vendedor="lilian" data-status="agendada" onclick="openModal('siderurgica')">
+              <div class="we-title">AT Siderúrgica Nacional</div>
+              <div class="we-time">14:00 — 16:00</div>
+              <div class="we-vendor">Lilian Costa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ VIEW 3: LIST VIEW ═══════ -->
+    <div class="list-view" id="listView">
+      <div class="list-table-wrapper">
+        <table class="list-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Hora</th>
+              <th>Empresa</th>
+              <th>Perfil</th>
+              <th>Vendedor</th>
+              <th>Cidade/UF</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-perfil="pre-vendas" data-vendedor="mariana" data-status="agendada">
+              <td>28/03</td>
+              <td>09:00</td>
+              <td style="font-weight:600;">Petroquímica Santos</td>
+              <td><span class="profile-badge pre-vendas">Pré Vendas</span></td>
+              <td>Mariana</td>
+              <td>Santos/SP</td>
+              <td><span class="status-badge agendada">Agendada</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('petroquimica')"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn"><span class="material-icons-outlined">edit</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="fup-proposta" data-vendedor="mariana" data-status="agendada">
+              <td>28/03</td>
+              <td>14:00</td>
+              <td style="font-weight:600;">Ind. Papel Paraná</td>
+              <td><span class="profile-badge fup-proposta">FUP Proposta</span></td>
+              <td>Mariana</td>
+              <td>Curitiba/PR</td>
+              <td><span class="status-badge agendada">Agendada</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('papel-parana')"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn"><span class="material-icons-outlined">edit</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="reativacao" data-vendedor="lilian" data-status="agendada">
+              <td>26/03</td>
+              <td>10:00</td>
+              <td style="font-weight:600;">Plásticos Premium</td>
+              <td><span class="profile-badge reativacao">Reativação</span></td>
+              <td>Lilian</td>
+              <td>Manaus/AM</td>
+              <td><span class="status-badge agendada">Agendada</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('plasticos')"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn"><span class="material-icons-outlined">edit</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="cross-sell" data-vendedor="santiago" data-status="agendada">
+              <td>24/03</td>
+              <td>09:30</td>
+              <td style="font-weight:600;">Vidros Temperados</td>
+              <td><span class="profile-badge cross-sell">Cross Sell</span></td>
+              <td>Santiago</td>
+              <td>Jacareí/SP</td>
+              <td><span class="status-badge agendada">Agendada</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('vidros')"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn"><span class="material-icons-outlined">edit</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="alin-tecnico" data-vendedor="lilian" data-status="agendada">
+              <td>21/03</td>
+              <td>14:00</td>
+              <td style="font-weight:600;">Siderúrgica Nacional</td>
+              <td><span class="profile-badge alin-tecnico">Alin. Técnico</span></td>
+              <td>Lilian</td>
+              <td>Volta Redonda/RJ</td>
+              <td><span class="status-badge agendada">Agendada</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('siderurgica')"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn"><span class="material-icons-outlined">edit</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="pre-vendas" data-vendedor="saulo" data-status="agendada">
+              <td>19/03</td>
+              <td>09:30</td>
+              <td style="font-weight:600;">Metalworks Rio</td>
+              <td><span class="profile-badge pre-vendas">Pré Vendas</span></td>
+              <td>Saulo</td>
+              <td>Rio de Janeiro/RJ</td>
+              <td><span class="status-badge agendada">Agendada</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('metalworks')"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn"><span class="material-icons-outlined">edit</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="fup-proposta" data-vendedor="lilian" data-status="agendada">
+              <td>17/03</td>
+              <td>09:00</td>
+              <td style="font-weight:600;">Textil Nordeste</td>
+              <td><span class="profile-badge fup-proposta">FUP Proposta</span></td>
+              <td>Lilian</td>
+              <td>Recife/PE</td>
+              <td><span class="status-badge agendada">Agendada</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('textil-nordeste')"><span class="material-icons-outlined">visibility</span></button>
+                <button class="action-btn"><span class="material-icons-outlined">edit</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="prospeccao" data-vendedor="santiago" data-status="cancelada">
+              <td>14/03</td>
+              <td>10:00</td>
+              <td style="font-weight:600; text-decoration:line-through; color:var(--grey);">Cerâmica Premium</td>
+              <td><span class="profile-badge prospeccao">Prospecção</span></td>
+              <td>Santiago</td>
+              <td>Sta Gertrudes/SP</td>
+              <td><span class="status-badge cancelada">Cancelada</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('ceramica')"><span class="material-icons-outlined">visibility</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="pre-vendas" data-vendedor="saulo" data-status="concluida">
+              <td>12/03</td>
+              <td>09:00</td>
+              <td style="font-weight:600;">Farmacêutica Central</td>
+              <td><span class="profile-badge pre-vendas">Pré Vendas</span></td>
+              <td>Saulo</td>
+              <td>Guarulhos/SP</td>
+              <td><span class="status-badge concluida">✓ Concluída</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('farmaceutica')"><span class="material-icons-outlined">visibility</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="alin-tecnico" data-vendedor="mariana" data-status="concluida">
+              <td>10/03</td>
+              <td>09:00</td>
+              <td style="font-weight:600;">AutoParts Brasil</td>
+              <td><span class="profile-badge alin-tecnico">Alin. Técnico</span></td>
+              <td>Mariana</td>
+              <td>Campinas/SP</td>
+              <td><span class="status-badge concluida">✓ Concluída</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('autoparts')"><span class="material-icons-outlined">visibility</span></button>
+              </td>
+            </tr>
+            <tr data-perfil="nps" data-vendedor="saulo" data-status="concluida">
+              <td>10/03</td>
+              <td>14:00</td>
+              <td style="font-weight:600;">Metalúrgica Gaúcha</td>
+              <td><span class="profile-badge nps">NPS</span></td>
+              <td>Saulo</td>
+              <td>Porto Alegre/RS</td>
+              <td><span class="status-badge concluida">✓ Concluída</span></td>
+              <td class="actions-cell">
+                <button class="action-btn" onclick="openModal('metalurgica')"><span class="material-icons-outlined">visibility</span></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend-bar">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--monday-green);"></div> Pré Vendas</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--monday-yellow);"></div> FUP Proposta</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--monday-red);"></div> NPS</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--monday-blue);"></div> Reativação</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--monday-purple);"></div> Prospecção</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--brown);"></div> Alin. Técnico</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--monday-orange);"></div> Cross Sell</div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main-wrapper -->
+
+<!-- ═══════ MODAL ═══════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Detalhes da Visita</h3>
+      <button class="modal-close" onclick="closeModal()"><span class="material-icons-outlined">close</span></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ─── VISIT DATA ───
+const visits = {
+  'textil-nordeste': {
+    empresa: 'Textil Nordeste',
+    perfil: 'FUP Proposta',
+    perfilClass: 'fup-proposta',
+    vendedor: 'Lilian Costa',
+    data: '17/03/2026 09:00 — 11:00',
+    status: 'Agendada',
+    statusClass: 'agendada',
+    oportunidade: 'Automação Tecelagem — R$ 560K',
+    local: 'Rua Ind. 450, Recife/PE',
+    zona: 'Nordeste',
+    obs: 'Levar catálogo atualizado e planilha de equalização'
+  },
+  'textil-nordeste-c': {
+    empresa: 'Textil Nordeste',
+    perfil: 'Pré Vendas',
+    perfilClass: 'pre-vendas',
+    vendedor: 'Lilian Costa',
+    data: '03/03/2026 09:00 — 11:00',
+    status: 'Concluída',
+    statusClass: 'concluida',
+    oportunidade: 'Automação Tecelagem — R$ 560K',
+    local: 'Rua Ind. 450, Recife/PE',
+    zona: 'Nordeste',
+    obs: 'Primeira visita realizada com sucesso. Cliente demonstrou interesse.'
+  },
+  'alimentos-naturais': {
+    empresa: 'Alimentos Naturais',
+    perfil: 'FUP Proposta',
+    perfilClass: 'fup-proposta',
+    vendedor: 'Mariana Souza',
+    data: '05/03/2026 10:00 — 12:00',
+    status: 'Concluída',
+    statusClass: 'concluida',
+    oportunidade: 'Linha de Embalagem — R$ 320K',
+    local: 'Av. Industrial 1200, São Paulo/SP',
+    zona: 'Sudeste',
+    obs: 'Follow-up realizado. Proposta enviada.'
+  },
+  'autoparts': {
+    empresa: 'AutoParts Brasil',
+    perfil: 'Alinhamento Técnico',
+    perfilClass: 'alin-tecnico',
+    vendedor: 'Mariana Souza',
+    data: '10/03/2026 09:00 — 12:00',
+    status: 'Concluída',
+    statusClass: 'concluida',
+    oportunidade: 'Robôs Soldagem — R$ 890K',
+    local: 'Rod. Anhanguera km 92, Campinas/SP',
+    zona: 'Sudeste',
+    obs: 'Alinhamento técnico concluído com equipe de engenharia do cliente.'
+  },
+  'metalurgica': {
+    empresa: 'Metalúrgica Gaúcha',
+    perfil: 'NPS',
+    perfilClass: 'nps',
+    vendedor: 'Saulo Ribeiro',
+    data: '10/03/2026 14:00 — 16:00',
+    status: 'Concluída',
+    statusClass: 'concluida',
+    oportunidade: 'Manutenção Preventiva — R$ 180K',
+    local: 'Av. Assis Brasil 3200, Porto Alegre/RS',
+    zona: 'Sul',
+    obs: 'NPS coletado: nota 9. Cliente satisfeito com implementação.'
+  },
+  'farmaceutica': {
+    empresa: 'Farmacêutica Central',
+    perfil: 'Pré Vendas',
+    perfilClass: 'pre-vendas',
+    vendedor: 'Saulo Ribeiro',
+    data: '12/03/2026 09:00 — 11:30',
+    status: 'Concluída',
+    statusClass: 'concluida',
+    oportunidade: 'Automação Laboratório — R$ 450K',
+    local: 'Rod. Pres. Dutra 850, Guarulhos/SP',
+    zona: 'Sudeste',
+    obs: 'Visita de pré-vendas. Levantamento de requisitos concluído.'
+  },
+  'ceramica': {
+    empresa: 'Cerâmica Premium',
+    perfil: 'Prospecção',
+    perfilClass: 'prospeccao',
+    vendedor: 'Santiago Oliveira',
+    data: '14/03/2026 10:00 — 12:00',
+    status: 'Cancelada',
+    statusClass: 'cancelada',
+    oportunidade: 'Forno Industrial — R$ 720K',
+    local: 'Dist. Industrial, Sta Gertrudes/SP',
+    zona: 'Sudeste',
+    obs: 'Cancelada pelo cliente. Reagendar para abril.'
+  },
+  'metalworks': {
+    empresa: 'Metalworks Rio',
+    perfil: 'Pré Vendas',
+    perfilClass: 'pre-vendas',
+    vendedor: 'Saulo Ribeiro',
+    data: '19/03/2026 09:30 — 12:00',
+    status: 'Agendada',
+    statusClass: 'agendada',
+    oportunidade: 'Prensa Hidráulica — R$ 340K',
+    local: 'Av. Brasil 14500, Rio de Janeiro/RJ',
+    zona: 'Sudeste',
+    obs: 'Levar amostras e documentação técnica.'
+  },
+  'siderurgica': {
+    empresa: 'Siderúrgica Nacional',
+    perfil: 'Alinhamento Técnico',
+    perfilClass: 'alin-tecnico',
+    vendedor: 'Lilian Costa',
+    data: '21/03/2026 14:00 — 16:00',
+    status: 'Agendada',
+    statusClass: 'agendada',
+    oportunidade: 'Automação Laminação — R$ 1.2M',
+    local: 'Rod. Pres. Dutra km 298, Volta Redonda/RJ',
+    zona: 'Sudeste',
+    obs: 'Reunião com gerente de produção e engenharia.'
+  },
+  'vidros': {
+    empresa: 'Vidros Temperados',
+    perfil: 'Cross Sell',
+    perfilClass: 'cross-sell',
+    vendedor: 'Santiago Oliveira',
+    data: '24/03/2026 09:30 — 11:30',
+    status: 'Agendada',
+    statusClass: 'agendada',
+    oportunidade: 'Sistema de Corte — R$ 280K',
+    local: 'Dist. Industrial, Jacareí/SP',
+    zona: 'Sudeste',
+    obs: 'Cross sell de módulo de corte a laser para cliente existente.'
+  },
+  'plasticos': {
+    empresa: 'Plásticos Premium',
+    perfil: 'Reativação',
+    perfilClass: 'reativacao',
+    vendedor: 'Lilian Costa',
+    data: '26/03/2026 10:00 — 12:00',
+    status: 'Agendada',
+    statusClass: 'agendada',
+    oportunidade: 'Extrusora Linha 3 — R$ 510K',
+    local: 'Dist. Industrial, Manaus/AM',
+    zona: 'Norte',
+    obs: 'Reativação de cliente inativo há 8 meses.'
+  },
+  'petroquimica': {
+    empresa: 'Petroquímica Santos',
+    perfil: 'Pré Vendas',
+    perfilClass: 'pre-vendas',
+    vendedor: 'Mariana Souza',
+    data: '28/03/2026 09:00 — 11:00',
+    status: 'Agendada',
+    statusClass: 'agendada',
+    oportunidade: 'Válvulas Industriais — R$ 670K',
+    local: 'Porto de Santos, Santos/SP',
+    zona: 'Sudeste',
+    obs: 'Primeira visita. Contato via indicação de Petroquímica Santos.'
+  },
+  'papel-parana': {
+    empresa: 'Ind. Papel Paraná',
+    perfil: 'FUP Proposta',
+    perfilClass: 'fup-proposta',
+    vendedor: 'Mariana Souza',
+    data: '28/03/2026 14:00 — 16:00',
+    status: 'Agendada',
+    statusClass: 'agendada',
+    oportunidade: 'Secadores Industriais — R$ 430K',
+    local: 'CIC, Curitiba/PR',
+    zona: 'Sul',
+    obs: 'Follow-up de proposta enviada em fevereiro.'
+  }
+};
+
+// ─── VIEW SWITCHING ───
+function switchView(view) {
+  document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.view-toggle button[data-view="${view}"]`).classList.add('active');
+
+  document.getElementById('monthView').classList.toggle('active', view === 'month');
+  document.getElementById('weekView').classList.toggle('active', view === 'week');
+  document.getElementById('listView').classList.toggle('active', view === 'list');
+
+  // Show/hide month-view and list-view using display
+  document.getElementById('monthView').style.display = view === 'month' ? 'block' : 'none';
+  document.getElementById('weekView').style.display = view === 'week' ? 'block' : 'none';
+  document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+}
+
+// Initialize view display
+document.getElementById('monthView').style.display = 'block';
+document.getElementById('weekView').style.display = 'none';
+document.getElementById('listView').style.display = 'none';
+
+// ─── MONTH NAVIGATION (demo) ───
+const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let currentMonth = 2; // March
+function navMonth(dir) {
+  currentMonth = (currentMonth + dir + 12) % 12;
+  document.getElementById('monthLabel').textContent = months[currentMonth] + ' 2026';
+}
+
+// ─── FILTER PILLS ───
+document.querySelectorAll('.filter-pills').forEach(group => {
+  group.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      group.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      applyFilters();
+    });
+  });
+});
+
+function applyFilters() {
+  const vendedor = document.querySelector('[data-filter="vendedor"] .filter-pill.active').dataset.value;
+  const perfil = document.querySelector('[data-filter="perfil"] .filter-pill.active').dataset.value;
+  const status = document.querySelector('[data-filter="status"] .filter-pill.active').dataset.value;
+
+  // Filter calendar events
+  document.querySelectorAll('.cal-event').forEach(ev => {
+    const show =
+      (vendedor === 'todos' || ev.dataset.vendedor === vendedor) &&
+      (perfil === 'todos' || ev.dataset.perfil === perfil) &&
+      (status === 'todos' || ev.dataset.status === status);
+    ev.style.display = show ? '' : 'none';
+  });
+
+  // Filter week events
+  document.querySelectorAll('.week-event').forEach(ev => {
+    const show =
+      (vendedor === 'todos' || ev.dataset.vendedor === vendedor) &&
+      (perfil === 'todos' || ev.dataset.perfil === perfil) &&
+      (status === 'todos' || ev.dataset.status === status);
+    ev.style.display = show ? '' : 'none';
+  });
+
+  // Filter list rows
+  document.querySelectorAll('.list-table tbody tr').forEach(row => {
+    const show =
+      (vendedor === 'todos' || row.dataset.vendedor === vendedor) &&
+      (perfil === 'todos' || row.dataset.perfil === perfil) &&
+      (status === 'todos' || row.dataset.status === status);
+    row.style.display = show ? '' : 'none';
+  });
+}
+
+// ─── MODAL ───
+function openModal(id) {
+  const v = visits[id];
+  if (!v) return;
+
+  document.getElementById('modalTitle').textContent = v.empresa;
+
+  const statusIcons = { agendada: '🟡', concluida: '✅', cancelada: '🔴' };
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-row">
+      <span class="mr-label">Empresa</span>
+      <span class="mr-value">${v.empresa}</span>
+    </div>
+    <div class="modal-row">
+      <span class="mr-label">Perfil</span>
+      <span class="mr-value"><span class="profile-badge ${v.perfilClass}">${v.perfil}</span></span>
+    </div>
+    <div class="modal-row">
+      <span class="mr-label">Vendedor</span>
+      <span class="mr-value">${v.vendedor}</span>
+    </div>
+    <div class="modal-row">
+      <span class="mr-label">Data</span>
+      <span class="mr-value">${v.data}</span>
+    </div>
+    <div class="modal-row">
+      <span class="mr-label">Status</span>
+      <span class="mr-value"><span class="status-badge ${v.statusClass}">${statusIcons[v.statusClass] || ''} ${v.status}</span></span>
+    </div>
+    <div class="modal-row">
+      <span class="mr-label">Oportunidade</span>
+      <span class="mr-value" style="font-weight:600;">${v.oportunidade}</span>
+    </div>
+    <div class="modal-row">
+      <span class="mr-label">Local</span>
+      <span class="mr-value">${v.local}</span>
+    </div>
+    <div class="modal-row">
+      <span class="mr-label">Zona</span>
+      <span class="mr-value">${v.zona}</span>
+    </div>
+    <div class="modal-row">
+      <span class="mr-label">Observações</span>
+      <span class="mr-value"><div class="obs-box">"${v.obs}"</div></span>
+    </div>
+  `;
+
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+// Close modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+
+</body>
+</html>

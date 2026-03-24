@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipeline Vendas | ARV CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --almost-black:#111111;--white:#ffffff;--whitesmoke:#f5f5f5;
+    --dark-grey:#5d5d5d;--grey:#9f9f9f;--light-grey:#d1d1d1;--red:#c82a2a;
+    --monday-purple:#6161ff;--monday-blue:#0073ea;--monday-green:#00ca72;
+    --monday-yellow:#ffcb00;--monday-red:#e44258;--monday-orange:#ff7575;
+    --sidebar-w:260px;
+  }
+  html{font-size:14px;}
+  body{font-family:'Inter Tight',sans-serif;background:var(--whitesmoke);color:var(--almost-black);display:flex;min-height:100vh;overflow:hidden;}
+  a{text-decoration:none;color:inherit;}
+
+  /* ─── Sidebar ─── */
+  .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--almost-black);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+  .sidebar-logo{padding:28px 24px 24px;font-size:1.35rem;font-weight:800;color:var(--white);letter-spacing:-.5px;display:flex;align-items:center;gap:10px;}
+  .sidebar-logo .dot{width:10px;height:10px;border-radius:50%;background:var(--red);}
+  .sidebar-nav{flex:1;overflow-y:auto;padding:4px 0;}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:11px 24px;color:var(--grey);font-size:.875rem;font-weight:500;cursor:pointer;position:relative;transition:all .15s;}
+  .nav-item:hover{color:var(--white);background:rgba(255,255,255,.04);}
+  .nav-item.active{color:var(--white);background:rgba(255,255,255,.06);}
+  .nav-item.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--red);border-radius:0 3px 3px 0;}
+  .nav-item .material-icons{font-size:20px;opacity:.7;}
+  .nav-item.active .material-icons{opacity:1;}
+  .nav-sub{padding-left:56px;}
+  .nav-sub .nav-item{padding:8px 24px 8px 0;font-size:.8125rem;}
+  .nav-sub .nav-item.active::before{left:-56px;}
+  .nav-section-label{padding:20px 24px 6px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--dark-grey);}
+  .sidebar-user{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+  .sidebar-user .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--monday-purple),var(--monday-blue));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;}
+  .sidebar-user .uname{color:var(--white);font-weight:600;font-size:.85rem;}
+  .sidebar-user .urole{color:var(--grey);font-size:.7rem;}
+
+  /* ─── Main ─── */
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;}
+
+  /* ─── Topbar ─── */
+  .topbar{background:var(--white);border-bottom:1px solid var(--light-grey);padding:0 32px;}
+  .topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:18px 0 12px;}
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--grey);font-weight:500;}
+  .breadcrumb span.current{color:var(--almost-black);font-weight:700;}
+  .pipeline-toggle{display:flex;background:var(--whitesmoke);border-radius:9999px;padding:3px;gap:2px;}
+  .pipeline-toggle button{border:none;background:transparent;padding:8px 20px;border-radius:9999px;font-family:inherit;font-size:.8125rem;font-weight:600;color:var(--dark-grey);cursor:pointer;transition:all .2s;}
+  .pipeline-toggle button.active{background:var(--almost-black);color:var(--white);box-shadow:0 1px 4px rgba(0,0,0,.15);}
+  .topbar-row2{display:flex;align-items:center;gap:10px;padding:0 0 14px;flex-wrap:wrap;}
+  .filter-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:9999px;border:1px solid var(--light-grey);background:var(--white);font-family:inherit;font-size:.75rem;font-weight:500;color:var(--dark-grey);cursor:pointer;transition:all .15s;}
+  .filter-btn:hover{border-color:var(--grey);color:var(--almost-black);}
+  .filter-btn .material-icons{font-size:16px;}
+  .search-box{margin-left:auto;display:flex;align-items:center;gap:6px;border:1px solid var(--light-grey);border-radius:9999px;padding:7px 14px;min-width:200px;}
+  .search-box .material-icons{font-size:16px;color:var(--grey);}
+  .search-box input{border:none;outline:none;font-family:inherit;font-size:.75rem;background:transparent;width:100%;}
+
+  /* ─── Summary Bar ─── */
+  .summary-bar{display:flex;align-items:center;gap:28px;padding:12px 32px;background:var(--white);border-bottom:1px solid var(--light-grey);}
+  .summary-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--dark-grey);font-weight:500;}
+  .summary-item strong{color:var(--almost-black);font-weight:700;font-size:.9rem;}
+
+  /* ─── Kanban ─── */
+  .kanban-wrapper{flex:1;overflow-x:auto;overflow-y:hidden;padding:20px 24px 24px;display:flex;gap:14px;}
+  .kanban-wrapper::-webkit-scrollbar{height:8px;}
+  .kanban-wrapper::-webkit-scrollbar-track{background:transparent;}
+  .kanban-wrapper::-webkit-scrollbar-thumb{background:var(--light-grey);border-radius:9999px;}
+
+  .kanban-col{min-width:280px;max-width:280px;display:flex;flex-direction:column;background:rgba(0,0,0,.018);border-radius:12px;padding:0 0 8px;}
+  .col-header{padding:14px 14px 10px;display:flex;align-items:center;gap:8px;position:sticky;top:0;}
+  .col-title{font-size:.8125rem;font-weight:700;color:var(--almost-black);}
+  .col-count{background:var(--whitesmoke);border:1px solid var(--light-grey);padding:1px 8px;border-radius:9999px;font-size:.7rem;font-weight:700;color:var(--dark-grey);}
+  .col-value{margin-left:auto;font-size:.7rem;font-weight:600;color:var(--grey);}
+  .col-cards{flex:1;overflow-y:auto;padding:0 8px 8px;display:flex;flex-direction:column;gap:10px;}
+  .col-cards::-webkit-scrollbar{width:4px;}
+  .col-cards::-webkit-scrollbar-thumb{background:var(--light-grey);border-radius:9999px;}
+
+  /* ─── Card ─── */
+  .card{background:var(--white);border-radius:8px;padding:14px;border-left:3px solid var(--light-grey);box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:grab;transition:all .2s;position:relative;}
+  .card:hover{box-shadow:0 6px 20px rgba(0,0,0,.1);transform:translateY(-2px);}
+  .card.temp-quente{border-left-color:var(--monday-red);}
+  .card.temp-morno{border-left-color:var(--monday-yellow);}
+  .card.temp-frio{border-left-color:var(--monday-blue);}
+  .card.card-convertido{border-left-color:var(--monday-green);background:linear-gradient(135deg,#f0fdf4,#ffffff);}
+  .card.card-perdido{border-left-color:var(--grey);opacity:.6;filter:saturate(.3);}
+
+  .card-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .temp-badge{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:9999px;text-transform:uppercase;letter-spacing:.3px;}
+  .temp-badge.quente{background:rgba(228,66,88,.1);color:var(--monday-red);}
+  .temp-badge.morno{background:rgba(255,203,0,.15);color:#b08d00;}
+  .temp-badge.frio{background:rgba(0,115,234,.1);color:var(--monday-blue);}
+  .card-days{font-size:.65rem;color:var(--grey);font-weight:600;}
+
+  .card-company{font-size:.82rem;font-weight:700;color:var(--almost-black);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card-project{font-size:.72rem;color:var(--grey);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  .card-values{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .card-money{font-size:.88rem;font-weight:800;color:var(--almost-black);}
+  .card-prob{display:flex;align-items:center;gap:5px;}
+  .prob-bar{width:40px;height:4px;border-radius:9999px;background:var(--light-grey);overflow:hidden;}
+  .prob-fill{height:100%;border-radius:9999px;background:var(--monday-green);}
+  .prob-text{font-size:.7rem;font-weight:700;color:var(--dark-grey);}
+
+  .card-divider{border:none;border-top:1px solid var(--whitesmoke);margin:0 0 8px;}
+
+  .card-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .card-resp{display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--dark-grey);font-weight:500;}
+  .card-resp .material-icons{font-size:14px;}
+  .card-checklist{display:flex;align-items:center;gap:3px;font-size:.68rem;color:var(--dark-grey);font-weight:600;}
+  .card-checklist .material-icons{font-size:14px;color:var(--monday-green);}
+
+  .card-scores{display:flex;gap:6px;margin-top:6px;}
+  .score-badge{padding:2px 7px;border-radius:9999px;font-size:.62rem;font-weight:700;letter-spacing:.3px;}
+  .score-st{background:rgba(97,97,255,.1);color:var(--monday-purple);}
+  .score-so{background:rgba(0,115,234,.1);color:var(--monday-blue);}
+  .score-green{background:rgba(0,202,114,.12)!important;color:#00854a!important;}
+  .score-yellow{background:rgba(255,203,0,.15)!important;color:#8a6d00!important;}
+  .score-red{background:rgba(228,66,88,.1)!important;color:var(--monday-red)!important;}
+
+  .cross-sell-tag{position:absolute;top:12px;right:12px;font-size:.58rem;font-weight:700;background:rgba(255,117,117,.12);color:var(--monday-orange);padding:2px 7px;border-radius:9999px;text-transform:uppercase;letter-spacing:.4px;}
+
+  .card-btn-proposta{display:none;margin-top:8px;width:100%;padding:6px;border:1px dashed var(--monday-purple);background:transparent;color:var(--monday-purple);border-radius:8px;font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s;}
+  .card-btn-proposta:hover{background:rgba(97,97,255,.06);}
+  .show-proposta .card:hover .card-btn-proposta{display:block;}
+
+  .card-motivo{font-size:.68rem;color:var(--grey);font-style:italic;margin-top:6px;}
+  .card-status-label{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:.68rem;font-weight:700;border-radius:9999px;padding:2px 8px;}
+  .label-convertido{background:rgba(0,202,114,.12);color:#00854a;}
+  .label-perdido{background:rgba(159,159,159,.12);color:var(--grey);}
+
+  /* ─── FAB ─── */
+  .fab{position:fixed;bottom:28px;right:32px;display:flex;align-items:center;gap:8px;background:var(--almost-black);color:var(--white);padding:14px 24px;border-radius:9999px;border:none;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.25);transition:all .2s;z-index:200;}
+  .fab:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3);}
+  .fab .material-icons{font-size:20px;}
+
+  /* Col specific tints */
+  .col-convertido{background:rgba(0,202,114,.03);}
+  .col-perdido{background:rgba(159,159,159,.04);}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo"><span class="dot"></span>ARV CRM</div>
+  <nav class="sidebar-nav">
+    <div class="nav-item"><span class="material-icons">dashboard</span>Dashboard</div>
+    <div class="nav-item active"><span class="material-icons">view_kanban</span>Pipeline</div>
+    <div class="nav-sub">
+      <div class="nav-item">Pre Vendas</div>
+      <div class="nav-item active">Vendas</div>
+    </div>
+    <div class="nav-item"><span class="material-icons">business</span>Empresas</div>
+    <div class="nav-item"><span class="material-icons">contacts</span>Contatos</div>
+    <div class="nav-item"><span class="material-icons">description</span>Propostas &amp; Orcamentos</div>
+    <div class="nav-item"><span class="material-icons">place</span>Visitas</div>
+    <div class="nav-item"><span class="material-icons">flag</span>Metas</div>
+    <div class="nav-item"><span class="material-icons">filter_alt</span>Dashboard de Funil</div>
+    <div class="nav-section-label">Sistema</div>
+    <div class="nav-item"><span class="material-icons">settings</span>Configuracoes</div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar">B</div>
+    <div><div class="uname">Bruno</div><div class="urole">Administrador</div></div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-row1">
+      <div class="breadcrumb">
+        <span class="material-icons" style="font-size:16px;">view_kanban</span>
+        Pipeline <span style="color:var(--light-grey);">/</span> <span class="current">Vendas</span>
+      </div>
+      <div class="pipeline-toggle">
+        <button>Pre Vendas</button>
+        <button class="active">Vendas</button>
+      </div>
+    </div>
+    <div class="topbar-row2">
+      <button class="filter-btn"><span class="material-icons">person</span>Resp. Comercial</button>
+      <button class="filter-btn"><span class="material-icons">engineering</span>Resp. Tecnico</button>
+      <button class="filter-btn"><span class="material-icons">thermostat</span>Temperatura</button>
+      <button class="filter-btn"><span class="material-icons">local_shipping</span>Tipo Entrega</button>
+      <button class="filter-btn"><span class="material-icons">date_range</span>Periodo</button>
+      <div class="search-box">
+        <span class="material-icons">search</span>
+        <input type="text" placeholder="Buscar oportunidade...">
+      </div>
+    </div>
+  </header>
+
+  <!-- Summary Bar -->
+  <div class="summary-bar">
+    <div class="summary-item"><span class="material-icons" style="font-size:16px;color:var(--monday-purple);">inventory_2</span>Oportunidades: <strong>28</strong></div>
+    <div class="summary-item"><span class="material-icons" style="font-size:16px;color:var(--monday-green);">payments</span>Valor total pipe: <strong>R$ 4,7M</strong></div>
+    <div class="summary-item"><span class="material-icons" style="font-size:16px;color:var(--monday-blue);">trending_up</span>Forecast ponderado: <strong>R$ 2,1M</strong></div>
+    <div class="summary-item"><span class="material-icons" style="font-size:16px;color:var(--monday-yellow);">emoji_events</span>Win rate: <strong>34%</strong></div>
+  </div>
+
+  <!-- Kanban Board -->
+  <div class="kanban-wrapper">
+
+    <!-- ── Col 1: Qualif. Oport. ── -->
+    <div class="kanban-col">
+      <div class="col-header">
+        <span class="col-title">Qualif. Oport.</span>
+        <span class="col-count">4</span>
+        <span class="col-value">R$ 600K</span>
+      </div>
+      <div class="col-cards">
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">5d</span>
+          </div>
+          <div class="card-company">Ind. Automacao Paulista</div>
+          <div class="card-project">Projeto: Retrofit PLC</div>
+          <div class="card-values">
+            <span class="card-money">R$ 380.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:55%;"></span></span><span class="prob-text">55%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Mariana</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>1/4</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 78</span>
+            <span class="score-badge score-so score-yellow">SO: 65</span>
+          </div>
+        </div>
+
+        <div class="card temp-morno">
+          <div class="card-row1">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">3d</span>
+          </div>
+          <div class="card-company">Metalworks Rio</div>
+          <div class="card-project">Projeto: Integracao SCADA</div>
+          <div class="card-values">
+            <span class="card-money">R$ 220.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:40%;background:var(--monday-yellow);"></span></span><span class="prob-text">40%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Saulo</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>0/4</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-yellow">ST: 62</span>
+            <span class="score-badge score-so score-yellow">SO: 58</span>
+          </div>
+        </div>
+
+        <div class="card temp-quente">
+          <span class="cross-sell-tag">Cross Sell</span>
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">2d</span>
+          </div>
+          <div class="card-company">Quimica Sudeste</div>
+          <div class="card-project">Projeto: Automacao Dosagem</div>
+          <div class="card-values">
+            <span class="card-money">R$ 145.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:50%;"></span></span><span class="prob-text">50%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Santiago</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>1/4</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 76</span>
+            <span class="score-badge score-so score-yellow">SO: 60</span>
+          </div>
+        </div>
+
+        <div class="card temp-morno">
+          <div class="card-row1">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">7d</span>
+          </div>
+          <div class="card-company">Eletromecanica Norte</div>
+          <div class="card-project">Projeto: Painel CLP</div>
+          <div class="card-values">
+            <span class="card-money">R$ 98.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:35%;background:var(--monday-yellow);"></span></span><span class="prob-text">35%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Lilian</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>0/4</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-yellow">ST: 58</span>
+            <span class="score-badge score-so score-yellow">SO: 52</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Col 2: Analise Interna ── -->
+    <div class="kanban-col">
+      <div class="col-header">
+        <span class="col-title">Analise Interna</span>
+        <span class="col-count">3</span>
+        <span class="col-value">R$ 715K</span>
+      </div>
+      <div class="col-cards">
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">8d</span>
+          </div>
+          <div class="card-company">Petroquimica Santos</div>
+          <div class="card-project">Projeto: Automacao Valvulas</div>
+          <div class="card-values">
+            <span class="card-money">R$ 520.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:45%;"></span></span><span class="prob-text">45%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Lilian</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>2/3</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 82</span>
+            <span class="score-badge score-so score-yellow">SO: 71</span>
+          </div>
+        </div>
+
+        <div class="card temp-morno">
+          <div class="card-row1">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">4d</span>
+          </div>
+          <div class="card-company">Ceramica Premium</div>
+          <div class="card-project">Projeto: Linha Packaging</div>
+          <div class="card-values">
+            <span class="card-money">R$ 195.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:50%;"></span></span><span class="prob-text">50%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Santiago</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>1/3</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-yellow">ST: 70</span>
+            <span class="score-badge score-so score-yellow">SO: 60</span>
+          </div>
+        </div>
+
+        <div class="card temp-quente">
+          <span class="cross-sell-tag">Up Sell</span>
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">6d</span>
+          </div>
+          <div class="card-company">Mineradora Carajas</div>
+          <div class="card-project">Projeto: Supervisorio SCADA</div>
+          <div class="card-values">
+            <span class="card-money">R$ 310.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:55%;"></span></span><span class="prob-text">55%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Mariana</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>2/3</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 85</span>
+            <span class="score-badge score-so score-green">SO: 76</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Col 3: Dev. Proposta ── -->
+    <div class="kanban-col show-proposta">
+      <div class="col-header">
+        <span class="col-title">Dev. Proposta</span>
+        <span class="col-count">5</span>
+        <span class="col-value">R$ 1,27M</span>
+      </div>
+      <div class="col-cards">
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">6d</span>
+          </div>
+          <div class="card-company">AutoParts Brasil</div>
+          <div class="card-project">Projeto: Celula Robotica</div>
+          <div class="card-values">
+            <span class="card-money">R$ 680.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:60%;"></span></span><span class="prob-text">60%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Mariana</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>3/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 91</span>
+            <span class="score-badge score-so score-green">SO: 85</span>
+          </div>
+          <button class="card-btn-proposta">Criar Proposta</button>
+        </div>
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">10d</span>
+          </div>
+          <div class="card-company">Siderurgica Nacional</div>
+          <div class="card-project">Projeto: Retrofit CLP</div>
+          <div class="card-values">
+            <span class="card-money">R$ 340.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:55%;"></span></span><span class="prob-text">55%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Saulo</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>2/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 85</span>
+            <span class="score-badge score-so score-yellow">SO: 72</span>
+          </div>
+          <button class="card-btn-proposta">Criar Proposta</button>
+        </div>
+
+        <div class="card temp-morno">
+          <div class="card-row1">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">3d</span>
+          </div>
+          <div class="card-company">Plasticos Premium</div>
+          <div class="card-project">Projeto: Integracao MES</div>
+          <div class="card-values">
+            <span class="card-money">R$ 250.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:45%;background:var(--monday-yellow);"></span></span><span class="prob-text">45%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Lilian</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>1/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-yellow">ST: 68</span>
+            <span class="score-badge score-so score-yellow">SO: 55</span>
+          </div>
+          <button class="card-btn-proposta">Criar Proposta</button>
+        </div>
+
+        <div class="card temp-quente">
+          <span class="cross-sell-tag">Cross Sell</span>
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">4d</span>
+          </div>
+          <div class="card-company">Textil Campinas</div>
+          <div class="card-project">Projeto: Automacao Tinturaria</div>
+          <div class="card-values">
+            <span class="card-money">R$ 185.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:50%;"></span></span><span class="prob-text">50%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Santiago</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>2/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 79</span>
+            <span class="score-badge score-so score-yellow">SO: 68</span>
+          </div>
+          <button class="card-btn-proposta">Criar Proposta</button>
+        </div>
+
+        <div class="card temp-morno">
+          <div class="card-row1">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">2d</span>
+          </div>
+          <div class="card-company">Engrenagens SP</div>
+          <div class="card-project">Projeto: Sistema Visao</div>
+          <div class="card-values">
+            <span class="card-money">R$ 120.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:40%;background:var(--monday-yellow);"></span></span><span class="prob-text">40%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Saulo</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>1/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-yellow">ST: 64</span>
+            <span class="score-badge score-so score-yellow">SO: 52</span>
+          </div>
+          <button class="card-btn-proposta">Criar Proposta</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Col 4: Proposta Enviada ── -->
+    <div class="kanban-col">
+      <div class="col-header">
+        <span class="col-title">Proposta Enviada</span>
+        <span class="col-count">7</span>
+        <span class="col-value">R$ 875K</span>
+      </div>
+      <div class="col-cards">
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">12d</span>
+          </div>
+          <div class="card-company">Alimentos Naturais S.A.</div>
+          <div class="card-project">Projeto: Automacao Pack</div>
+          <div class="card-values">
+            <span class="card-money">R$ 410.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:65%;"></span></span><span class="prob-text">65%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Mariana</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>4/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 88</span>
+            <span class="score-badge score-so score-green">SO: 80</span>
+          </div>
+        </div>
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">7d</span>
+          </div>
+          <div class="card-company">Vidros Temperados BR</div>
+          <div class="card-project">Projeto: Linha Robotica</div>
+          <div class="card-values">
+            <span class="card-money">R$ 290.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:60%;"></span></span><span class="prob-text">60%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Santiago</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>3/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 80</span>
+            <span class="score-badge score-so score-green">SO: 75</span>
+          </div>
+        </div>
+
+        <div class="card temp-morno">
+          <div class="card-row1">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">5d</span>
+          </div>
+          <div class="card-company">Farmaceutica Central</div>
+          <div class="card-project">Projeto: Retrofit</div>
+          <div class="card-values">
+            <span class="card-money">R$ 175.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:50%;"></span></span><span class="prob-text">50%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Saulo</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>2/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-yellow">ST: 72</span>
+            <span class="score-badge score-so score-yellow">SO: 62</span>
+          </div>
+        </div>
+
+        <div class="card temp-quente">
+          <span class="cross-sell-tag">Up Sell</span>
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">9d</span>
+          </div>
+          <div class="card-company">Cimentos Brasil</div>
+          <div class="card-project">Projeto: Dosagem Automatica</div>
+          <div class="card-values">
+            <span class="card-money">R$ 230.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:58%;"></span></span><span class="prob-text">58%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Lilian</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>3/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 83</span>
+            <span class="score-badge score-so score-green">SO: 76</span>
+          </div>
+        </div>
+
+        <div class="card temp-morno">
+          <div class="card-row1">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">4d</span>
+          </div>
+          <div class="card-company">Borrachas Parana</div>
+          <div class="card-project">Projeto: Linha Extrussao</div>
+          <div class="card-values">
+            <span class="card-money">R$ 165.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:45%;background:var(--monday-yellow);"></span></span><span class="prob-text">45%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Mariana</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>2/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-yellow">ST: 66</span>
+            <span class="score-badge score-so score-yellow">SO: 55</span>
+          </div>
+        </div>
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">6d</span>
+          </div>
+          <div class="card-company">Motores Eletricos MG</div>
+          <div class="card-project">Projeto: Teste Final Linha</div>
+          <div class="card-values">
+            <span class="card-money">R$ 198.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:62%;"></span></span><span class="prob-text">62%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Santiago</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>3/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 81</span>
+            <span class="score-badge score-so score-green">SO: 77</span>
+          </div>
+        </div>
+
+        <div class="card temp-morno">
+          <div class="card-row1">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">3d</span>
+          </div>
+          <div class="card-company">Embalagens Eco</div>
+          <div class="card-project">Projeto: Paletizador</div>
+          <div class="card-values">
+            <span class="card-money">R$ 142.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:42%;background:var(--monday-yellow);"></span></span><span class="prob-text">42%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Saulo</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>2/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-yellow">ST: 60</span>
+            <span class="score-badge score-so score-yellow">SO: 53</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Col 5: Negociacao ── -->
+    <div class="kanban-col">
+      <div class="col-header">
+        <span class="col-title">Negociacao</span>
+        <span class="col-count">4</span>
+        <span class="col-value">R$ 755K</span>
+      </div>
+      <div class="col-cards">
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">15d</span>
+          </div>
+          <div class="card-company">Textil Nordeste</div>
+          <div class="card-project">Projeto: Automacao Tecelagem</div>
+          <div class="card-values">
+            <span class="card-money">R$ 560.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:75%;"></span></span><span class="prob-text">75%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Lilian</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>4/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 90</span>
+            <span class="score-badge score-so score-green">SO: 88</span>
+          </div>
+        </div>
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">9d</span>
+          </div>
+          <div class="card-company">Ind. Papel Parana</div>
+          <div class="card-project">Projeto: Integracao</div>
+          <div class="card-values">
+            <span class="card-money">R$ 195.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:70%;"></span></span><span class="prob-text">70%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Mariana</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>3/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 82</span>
+            <span class="score-badge score-so score-green">SO: 78</span>
+          </div>
+        </div>
+
+        <div class="card temp-quente">
+          <span class="cross-sell-tag">Cross Sell</span>
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">11d</span>
+          </div>
+          <div class="card-company">Laticinio Serra Gauda</div>
+          <div class="card-project">Projeto: CIP Automatico</div>
+          <div class="card-values">
+            <span class="card-money">R$ 275.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:72%;"></span></span><span class="prob-text">72%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Santiago</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>4/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 86</span>
+            <span class="score-badge score-so score-green">SO: 82</span>
+          </div>
+        </div>
+
+        <div class="card temp-morno">
+          <div class="card-row1">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">6d</span>
+          </div>
+          <div class="card-company">Cosmeticos Naturale</div>
+          <div class="card-project">Projeto: Envase Automatico</div>
+          <div class="card-values">
+            <span class="card-money">R$ 148.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:60%;"></span></span><span class="prob-text">60%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Saulo</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>3/5</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 78</span>
+            <span class="score-badge score-so score-yellow">SO: 74</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Col 6: Fechamento ── -->
+    <div class="kanban-col">
+      <div class="col-header">
+        <span class="col-title">Fechamento</span>
+        <span class="col-count">2</span>
+        <span class="col-value">R$ 480K</span>
+      </div>
+      <div class="col-cards">
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">3d</span>
+          </div>
+          <div class="card-company">Metalurgica Gaucha</div>
+          <div class="card-project">Projeto: Celula Soldagem</div>
+          <div class="card-values">
+            <span class="card-money">R$ 480.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:90%;"></span></span><span class="prob-text">90%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Saulo</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>5/5 &#10003;</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 95</span>
+            <span class="score-badge score-so score-green">SO: 92</span>
+          </div>
+        </div>
+
+        <div class="card temp-quente">
+          <div class="card-row1">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">5d</span>
+          </div>
+          <div class="card-company">Ind. Mecanica Joinville</div>
+          <div class="card-project">Projeto: Retrofit Torno CNC</div>
+          <div class="card-values">
+            <span class="card-money">R$ 325.000</span>
+            <span class="card-prob"><span class="prob-bar"><span class="prob-fill" style="width:85%;"></span></span><span class="prob-text">85%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Mariana</span>
+            <span class="card-checklist"><span class="material-icons">checklist</span>5/5 &#10003;</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 92</span>
+            <span class="score-badge score-so score-green">SO: 89</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Col 7: Convertido ── -->
+    <div class="kanban-col col-convertido">
+      <div class="col-header">
+        <span class="col-title">Convertido &#128640;</span>
+        <span class="col-count">12</span>
+        <span class="col-value">R$ 2,8M</span>
+      </div>
+      <div class="col-cards">
+
+        <div class="card card-convertido">
+          <div class="card-row1">
+            <span class="card-status-label label-convertido"><span class="material-icons" style="font-size:13px;">check_circle</span>Ganho</span>
+            <span class="card-days">Fechado 02/03</span>
+          </div>
+          <div class="card-company">Agrotech Ribeirao</div>
+          <div class="card-project">Projeto: Automacao Irrigacao</div>
+          <div class="card-values">
+            <span class="card-money" style="color:var(--monday-green);">R$ 420.000</span>
+            <span class="card-prob"><span class="prob-text" style="color:var(--monday-green);font-weight:800;">100%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Mariana</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 94</span>
+            <span class="score-badge score-so score-green">SO: 91</span>
+          </div>
+        </div>
+
+        <div class="card card-convertido">
+          <div class="card-row1">
+            <span class="card-status-label label-convertido"><span class="material-icons" style="font-size:13px;">check_circle</span>Ganho</span>
+            <span class="card-days">Fechado 25/02</span>
+          </div>
+          <div class="card-company">Energia Solar MG</div>
+          <div class="card-project">Projeto: Painel Monitoramento</div>
+          <div class="card-values">
+            <span class="card-money" style="color:var(--monday-green);">R$ 310.000</span>
+            <span class="card-prob"><span class="prob-text" style="color:var(--monday-green);font-weight:800;">100%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Lilian</span>
+          </div>
+          <div class="card-scores">
+            <span class="score-badge score-st score-green">ST: 90</span>
+            <span class="score-badge score-so score-green">SO: 87</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Col 8: Perdido ── -->
+    <div class="kanban-col col-perdido">
+      <div class="col-header">
+        <span class="col-title">Perdido &#10060;</span>
+        <span class="col-count">8</span>
+        <span class="col-value">R$ 1,2M</span>
+      </div>
+      <div class="col-cards">
+
+        <div class="card card-perdido">
+          <div class="card-row1">
+            <span class="card-status-label label-perdido"><span class="material-icons" style="font-size:13px;">cancel</span>Perdido</span>
+            <span class="card-days">14/02</span>
+          </div>
+          <div class="card-company">Logistica Express</div>
+          <div class="card-project">Projeto: Sorter Automatico</div>
+          <div class="card-values">
+            <span class="card-money">R$ 350.000</span>
+            <span class="card-prob"><span class="prob-text">0%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Santiago</span>
+          </div>
+          <div class="card-motivo">Motivo: Orcamento acima do budget do cliente</div>
+        </div>
+
+        <div class="card card-perdido">
+          <div class="card-row1">
+            <span class="card-status-label label-perdido"><span class="material-icons" style="font-size:13px;">cancel</span>Perdido</span>
+            <span class="card-days">08/02</span>
+          </div>
+          <div class="card-company">Grafica Modelo</div>
+          <div class="card-project">Projeto: Automacao Corte</div>
+          <div class="card-values">
+            <span class="card-money">R$ 185.000</span>
+            <span class="card-prob"><span class="prob-text">0%</span></span>
+          </div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <span class="card-resp"><span class="material-icons">person</span>Saulo</span>
+          </div>
+          <div class="card-motivo">Motivo: Optou por concorrente nacional</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /kanban-wrapper -->
+
+</div><!-- /main -->
+
+<!-- FAB -->
+<button class="fab">
+  <span class="material-icons">add</span>
+  Nova Oportunidade
+</button>
+
+</body>
+</html>

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARV CRM - Pipeline Pr&eacute; Vendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;font-family:'Inter Tight',sans-serif;background:#f5f5f5;color:#111111;overflow:hidden;}
+:root{--almost-black:#111111;--white:#ffffff;--whitesmoke:#f5f5f5;--dark-grey:#5d5d5d;--grey:#9f9f9f;--light-grey:#d1d1d1;--red:#c82a2a;--monday-purple:#6161ff;--monday-blue:#0073ea;--monday-green:#00ca72;--monday-yellow:#ffcb00;--monday-red:#e44258;--monday-orange:#ff7575;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--almost-black);display:flex;flex-direction:column;z-index:100;overflow-y:auto;}
+.sidebar-logo{padding:28px 24px 24px;font-size:20px;font-weight:700;color:var(--white);letter-spacing:1px;display:flex;align-items:center;gap:10px;}
+.sidebar-logo span{color:var(--red);font-size:24px;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 24px;color:#a0a0a0;font-size:13.5px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s;position:relative;}
+.nav-item:hover{color:#d0d0d0;background:rgba(255,255,255,.04);}
+.nav-item.active{color:var(--white);background:rgba(255,255,255,.06);border-left:3px solid var(--red);padding-left:21px;}
+.nav-item .material-icons{font-size:20px;opacity:.7;}
+.nav-item.active .material-icons{opacity:1;}
+.nav-sub{padding-left:56px;}
+.nav-sub .nav-item{padding:8px 24px 8px 0;font-size:12.5px;}
+.nav-sub .nav-item.active{border-left:none;padding-left:0;background:none;color:var(--white);}
+.nav-sub .nav-item.active::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--red);position:absolute;left:-16px;top:50%;transform:translateY(-50%);}
+.nav-sub .nav-item:hover{background:none;color:#d0d0d0;}
+.nav-section-label{padding:20px 24px 6px;font-size:10px;text-transform:uppercase;color:#555;letter-spacing:1.5px;font-weight:600;}
+.sidebar-user{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;color:var(--white);}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--monday-purple),var(--monday-blue));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff;}
+.user-info{font-size:13px;font-weight:500;}
+.user-info small{display:block;font-size:11px;color:var(--grey);font-weight:400;}
+
+/* MAIN */
+.main{margin-left:260px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* TOPBAR */
+.topbar{background:var(--white);border-bottom:1px solid #e8e8e8;padding:0 32px;flex-shrink:0;}
+.topbar-upper{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;}
+.breadcrumb{font-size:13px;color:var(--grey);}
+.breadcrumb b{color:var(--almost-black);font-weight:600;}
+.pipeline-toggle{display:flex;background:#f0f0f0;border-radius:9999px;padding:3px;}
+.toggle-btn{padding:8px 22px;border-radius:9999px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--dark-grey);}
+.toggle-btn.active{background:var(--almost-black);color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.topbar-lower{display:flex;align-items:center;gap:12px;padding-bottom:14px;flex-wrap:wrap;}
+.filter-dropdown{padding:7px 14px;border-radius:8px;border:1px solid var(--light-grey);font-family:inherit;font-size:12.5px;color:var(--dark-grey);background:var(--white);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%239f9f9f' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;min-width:140px;}
+.filter-dropdown:focus{outline:none;border-color:var(--monday-blue);}
+.search-input{padding:7px 14px 7px 36px;border-radius:8px;border:1px solid var(--light-grey);font-family:inherit;font-size:12.5px;color:var(--almost-black);background:var(--white);margin-left:auto;min-width:220px;position:relative;}
+.search-input:focus{outline:none;border-color:var(--monday-blue);}
+.search-wrap{position:relative;margin-left:auto;}
+.search-wrap .material-icons{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--grey);}
+
+/* SUMMARY BAR */
+.summary-bar{display:flex;align-items:center;gap:32px;padding:12px 32px;background:var(--white);border-bottom:1px solid #e8e8e8;flex-shrink:0;}
+.summary-item{font-size:13px;color:var(--dark-grey);}
+.summary-item strong{color:var(--almost-black);font-weight:700;font-size:14px;}
+
+/* KANBAN */
+.kanban-wrapper{flex:1;overflow-x:auto;overflow-y:hidden;padding:24px 32px 24px;display:flex;gap:16px;}
+.kanban-column{min-width:296px;max-width:296px;display:flex;flex-direction:column;background:#f0f0f0;border-radius:12px;overflow:hidden;}
+.column-header{padding:16px 16px 12px;position:relative;}
+.column-header::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;}
+.col-prospecao .column-header::before{background:var(--monday-blue);}
+.col-contato .column-header::before{background:var(--monday-purple);}
+.col-qualificacao .column-header::before{background:var(--monday-yellow);}
+.col-qualificado .column-header::before{background:var(--monday-green);}
+.col-descartado .column-header::before{background:var(--monday-red);}
+.column-title{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--almost-black);}
+.column-count{background:rgba(0,0,0,.08);color:var(--dark-grey);font-size:11px;font-weight:600;padding:2px 8px;border-radius:9999px;}
+.column-value{font-size:12px;color:var(--grey);margin-top:4px;font-weight:500;}
+.column-cards{flex:1;overflow-y:auto;padding:4px 10px 10px;display:flex;flex-direction:column;gap:10px;}
+.column-cards::-webkit-scrollbar{width:4px;}
+.column-cards::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px;}
+
+/* CARDS */
+.kanban-card{background:var(--white);border-radius:8px;padding:14px 16px;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 1px 3px rgba(0,0,0,.08);position:relative;border-left:3px solid transparent;}
+.kanban-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1);}
+.kanban-card.temp-frio{border-left-color:var(--monday-blue);}
+.kanban-card.temp-morno{border-left-color:var(--monday-yellow);}
+.kanban-card.temp-quente{border-left-color:var(--monday-red);}
+.kanban-card.discarded{opacity:.55;}
+.kanban-card.discarded .card-company{text-decoration:line-through;color:var(--grey);}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.temp-badge{font-size:11px;font-weight:600;padding:2px 10px;border-radius:9999px;}
+.temp-badge.frio{background:#e3f0ff;color:#0062cc;}
+.temp-badge.morno{background:#fff5d6;color:#a67c00;}
+.temp-badge.quente{background:#ffe8eb;color:#c82a2a;}
+.card-days{font-size:11px;color:var(--grey);font-weight:500;display:flex;align-items:center;gap:3px;}
+.card-days.overdue{color:var(--monday-orange);}
+.card-company{font-size:13.5px;font-weight:700;color:var(--almost-black);margin-bottom:3px;line-height:1.3;}
+.card-product{font-size:12px;color:var(--grey);margin-bottom:8px;}
+.card-value{font-size:15px;font-weight:700;color:var(--almost-black);margin-bottom:10px;}
+.card-sep{height:1px;background:#eee;margin-bottom:10px;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;}
+.card-owner{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dark-grey);font-weight:500;}
+.owner-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;}
+.avatar-mariana{background:#e44258;}
+.avatar-saulo{background:#0073ea;}
+.avatar-santiago{background:#6161ff;}
+.avatar-lilian{background:#00ca72;}
+.ls-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:9999px;}
+.ls-green{background:#e3fbef;color:#007a3d;}
+.ls-yellow{background:#fff5d6;color:#a67c00;}
+.ls-red{background:#ffe8eb;color:#c82a2a;}
+
+/* CARD HOVER ACTIONS */
+.card-actions{display:none;margin-top:10px;gap:8px;}
+.kanban-card:hover .card-actions{display:flex;}
+.btn-enrich{padding:4px 12px;border-radius:9999px;border:1px solid var(--light-grey);font-family:inherit;font-size:11px;color:var(--dark-grey);background:transparent;cursor:pointer;font-weight:500;transition:all .15s;}
+.btn-enrich:hover{border-color:var(--monday-blue);color:var(--monday-blue);}
+.fup-alert{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--monday-orange);font-weight:600;}
+
+/* FAB */
+.fab{position:fixed;bottom:32px;right:32px;width:52px;height:52px;border-radius:50%;background:var(--almost-black);color:var(--white);border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s;z-index:200;}
+.fab:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(0,0,0,.25);}
+.fab .material-icons{font-size:28px;}
+
+/* SCROLLBAR GLOBAL */
+::-webkit-scrollbar{height:6px;}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo"><span class="material-icons">hub</span> ARV CRM</div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="#"><span class="material-icons">dashboard</span> Dashboard</a>
+    <a class="nav-item active" href="#"><span class="material-icons">view_kanban</span> Pipeline</a>
+    <div class="nav-sub">
+      <a class="nav-item active" href="#">Pr&eacute; Vendas</a>
+      <a class="nav-item" href="#">Vendas</a>
+    </div>
+    <a class="nav-item" href="#"><span class="material-icons">business</span> Empresas</a>
+    <a class="nav-item" href="#"><span class="material-icons">contacts</span> Contatos</a>
+    <a class="nav-item" href="#"><span class="material-icons">description</span> Propostas &amp; Or&ccedil;amentos</a>
+    <a class="nav-item" href="#"><span class="material-icons">place</span> Visitas</a>
+    <a class="nav-item" href="#"><span class="material-icons">flag</span> Metas</a>
+    <a class="nav-item" href="#"><span class="material-icons">donut_large</span> Dashboard de Funil</a>
+    <div class="nav-section-label">Sistema</div>
+    <a class="nav-item" href="#"><span class="material-icons">settings</span> Configura&ccedil;&otilde;es</a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">B</div>
+    <div class="user-info">Bruno<small>Administrador</small></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-upper">
+      <div class="breadcrumb">Pipeline / <b>Pr&eacute; Vendas</b></div>
+      <div class="pipeline-toggle">
+        <button class="toggle-btn active">Pr&eacute; Vendas</button>
+        <button class="toggle-btn">Vendas</button>
+      </div>
+    </div>
+    <div class="topbar-lower">
+      <select class="filter-dropdown"><option>Respons&aacute;vel</option><option>Mariana</option><option>Saulo</option><option>Santiago</option><option>Lilian</option></select>
+      <select class="filter-dropdown"><option>Temperatura</option><option>Frio</option><option>Morno</option><option>Quente</option></select>
+      <select class="filter-dropdown"><option>Produto</option><option>Automa&ccedil;&atilde;o</option><option>Retrofit CLP</option><option>Packaging</option><option>Integra&ccedil;&atilde;o</option></select>
+      <select class="filter-dropdown"><option>Per&iacute;odo</option><option>&Uacute;ltimos 7 dias</option><option>&Uacute;ltimos 30 dias</option><option>Este m&ecirc;s</option></select>
+      <div class="search-wrap">
+        <span class="material-icons">search</span>
+        <input class="search-input" type="text" placeholder="Buscar leads...">
+      </div>
+    </div>
+  </header>
+
+  <!-- SUMMARY BAR -->
+  <div class="summary-bar">
+    <div class="summary-item">Total leads: <strong>43</strong></div>
+    <div class="summary-item">Valor total: <strong>R$ 2,8M</strong></div>
+    <div class="summary-item">Convers&atilde;o geral: <strong>25%</strong></div>
+  </div>
+
+  <!-- KANBAN BOARD -->
+  <div class="kanban-wrapper">
+
+    <!-- COL 1: PROSPECAO -->
+    <div class="kanban-column col-prospecao">
+      <div class="column-header">
+        <div class="column-title">Prospec&ccedil;&atilde;o <span class="column-count">12</span></div>
+        <div class="column-value">R$ 480K</div>
+      </div>
+      <div class="column-cards">
+
+        <div class="kanban-card temp-frio">
+          <div class="card-top">
+            <span class="temp-badge frio">Frio</span>
+            <span class="card-days">5d</span>
+          </div>
+          <div class="card-company">Metal&uacute;rgica S&atilde;o Paulo S.A.</div>
+          <div class="card-product">Retrofit CLP</div>
+          <div class="card-value">R$ 280.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-saulo">S</span> Saulo</div>
+            <span class="ls-badge ls-red">LS: 35</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+        <div class="kanban-card temp-morno">
+          <div class="card-top">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">3d</span>
+          </div>
+          <div class="card-company">Ind. Mec&acirc;nica Campinas</div>
+          <div class="card-product">Automa&ccedil;&atilde;o</div>
+          <div class="card-value">R$ 150.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-mariana">M</span> Mariana</div>
+            <span class="ls-badge ls-yellow">LS: 52</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+        <div class="kanban-card temp-frio">
+          <div class="card-top">
+            <span class="temp-badge frio">Frio</span>
+            <span class="card-days overdue">8d <span class="material-icons" style="font-size:14px">warning</span></span>
+          </div>
+          <div class="card-company">TechPack Embalagens</div>
+          <div class="card-product">Packaging</div>
+          <div class="card-value">R$ 95.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-santiago">S</span> Santiago</div>
+            <span class="ls-badge ls-red">LS: 28</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+            <span class="fup-alert"><span class="material-icons" style="font-size:14px">warning</span> FUP</span>
+          </div>
+        </div>
+
+        <div class="kanban-card temp-morno">
+          <div class="card-top">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">2d</span>
+          </div>
+          <div class="card-company">Pl&aacute;sticos Sul Ltda</div>
+          <div class="card-product">Integra&ccedil;&atilde;o</div>
+          <div class="card-value">R$ 180.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-lilian">L</span> Lilian</div>
+            <span class="ls-badge ls-yellow">LS: 61</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COL 2: PRIMEIRO CONTATO -->
+    <div class="kanban-column col-contato">
+      <div class="column-header">
+        <div class="column-title">Primeiro Contato <span class="column-count">8</span></div>
+        <div class="column-value">R$ 890K</div>
+      </div>
+      <div class="column-cards">
+
+        <div class="kanban-card temp-quente">
+          <div class="card-top">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">4d</span>
+          </div>
+          <div class="card-company">AutoParts Brasil</div>
+          <div class="card-product">Linha Rob&oacute;tica</div>
+          <div class="card-value">R$ 450.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-mariana">M</span> Mariana</div>
+            <span class="ls-badge ls-green">LS: 78</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+        <div class="kanban-card temp-morno">
+          <div class="card-top">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">6d</span>
+          </div>
+          <div class="card-company">Cer&acirc;mica Minas Gerais</div>
+          <div class="card-product">Automa&ccedil;&atilde;o</div>
+          <div class="card-value">R$ 120.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-saulo">S</span> Saulo</div>
+            <span class="ls-badge ls-yellow">LS: 55</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+        <div class="kanban-card temp-quente">
+          <div class="card-top">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">1d</span>
+          </div>
+          <div class="card-company">Sider&uacute;rgica Nacional</div>
+          <div class="card-product">Retrofit</div>
+          <div class="card-value">R$ 320.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-lilian">L</span> Lilian</div>
+            <span class="ls-badge ls-green">LS: 82</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COL 3: QUALIFICACAO -->
+    <div class="kanban-column col-qualificacao">
+      <div class="column-header">
+        <div class="column-title">Qualifica&ccedil;&atilde;o <span class="column-count">5</span></div>
+        <div class="column-value">R$ 375K</div>
+      </div>
+      <div class="column-cards">
+
+        <div class="kanban-card temp-quente">
+          <div class="card-top">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">7d</span>
+          </div>
+          <div class="card-company">Alimentos Naturais S.A.</div>
+          <div class="card-product">Packaging</div>
+          <div class="card-value">R$ 200.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-mariana">M</span> Mariana</div>
+            <span class="ls-badge ls-green">LS: 88</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+        <div class="kanban-card temp-morno">
+          <div class="card-top">
+            <span class="temp-badge morno">Morno</span>
+            <span class="card-days">4d</span>
+          </div>
+          <div class="card-company">Farmac&ecirc;utica Central</div>
+          <div class="card-product">Integra&ccedil;&atilde;o</div>
+          <div class="card-value">R$ 175.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-santiago">S</span> Santiago</div>
+            <span class="ls-badge ls-yellow">LS: 65</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COL 4: QUALIFICADO -->
+    <div class="kanban-column col-qualificado">
+      <div class="column-header">
+        <div class="column-title">Qualificado &#10003; <span class="column-count">3</span></div>
+        <div class="column-value">R$ 450K</div>
+      </div>
+      <div class="column-cards">
+
+        <div class="kanban-card temp-quente">
+          <div class="card-top">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">2d</span>
+          </div>
+          <div class="card-company">Vidros Temperados BR</div>
+          <div class="card-product">Automa&ccedil;&atilde;o</div>
+          <div class="card-value">R$ 310.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-saulo">S</span> Saulo</div>
+            <span class="ls-badge ls-green">LS: 92</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+        <div class="kanban-card temp-quente">
+          <div class="card-top">
+            <span class="temp-badge quente">Quente</span>
+            <span class="card-days">1d</span>
+          </div>
+          <div class="card-company">T&ecirc;xtil Nordeste</div>
+          <div class="card-product">Retrofit</div>
+          <div class="card-value">R$ 140.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-lilian">L</span> Lilian</div>
+            <span class="ls-badge ls-green">LS: 85</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-enrich">Enriquecer</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COL 5: DESCARTADO -->
+    <div class="kanban-column col-descartado">
+      <div class="column-header">
+        <div class="column-title">Descartado &#10007; <span class="column-count">15</span></div>
+        <div class="column-value">R$ 605K</div>
+      </div>
+      <div class="column-cards">
+
+        <div class="kanban-card temp-frio discarded">
+          <div class="card-top">
+            <span class="temp-badge frio">Frio</span>
+            <span class="card-days">32d</span>
+          </div>
+          <div class="card-company">Construtora Horizonte Ltda</div>
+          <div class="card-product">Integra&ccedil;&atilde;o</div>
+          <div class="card-value" style="color:var(--grey)">R$ 220.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-santiago">S</span> Santiago</div>
+            <span class="ls-badge ls-red">LS: 12</span>
+          </div>
+        </div>
+
+        <div class="kanban-card temp-frio discarded">
+          <div class="card-top">
+            <span class="temp-badge frio">Frio</span>
+            <span class="card-days">45d</span>
+          </div>
+          <div class="card-company">Gr&atilde;fica Express&atilde;o S.A.</div>
+          <div class="card-product">Packaging</div>
+          <div class="card-value" style="color:var(--grey)">R$ 385.000</div>
+          <div class="card-sep"></div>
+          <div class="card-footer">
+            <div class="card-owner"><span class="owner-avatar avatar-mariana">M</span> Mariana</div>
+            <span class="ls-badge ls-red">LS: 8</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- FAB -->
+<button class="fab" title="Novo lead">
+  <span class="material-icons">add</span>
+</button>
+
+</body>
+</html>
