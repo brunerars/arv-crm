@@ -17,3 +17,4 @@ from models.atividade import Atividade
 from models.historico_etapa import HistoricoEtapa
 from models.scoring_resposta import ScoringResposta
 from models.meta_vendas import MetaVendas
+from models.event_log import EventLog
