@@ -8,3 +8,14 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Local Claude Code state
+.claude/settings.local.json
+
+# Datasets Monday legado (>2MB, não versionar)
+data/*.xlsx
+data/*.csv
+
+# Temporários
+*.tmp
+*.bak
