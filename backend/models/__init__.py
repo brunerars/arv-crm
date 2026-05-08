@@ -12,6 +12,7 @@ from models.origem import Origem
 from models.concorrente import Concorrente
 from models.lead import Lead
 from models.oportunidade import Oportunidade
+from models.orcamento import Orcamento
 from models.atividade import Atividade
 from models.historico_etapa import HistoricoEtapa
 from models.scoring_resposta import ScoringResposta
