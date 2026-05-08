@@ -19,7 +19,7 @@ COMPLETUDE_MAP = {
         "empresa.cnpj": "CNPJ",
         "empresa.telefone_fixo": "Telefone fixo",
         "contato_principal.nome": "Nome do contato",
-        "contato_principal.whatsapp": "Telefone/WhatsApp",
+        "contato_principal.telefone_whatsapp": "Telefone/WhatsApp",
         "contato_principal.email": "E-mail",
     },
     "primeiro_contato": {
