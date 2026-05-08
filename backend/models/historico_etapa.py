@@ -1,23 +1,36 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Integer, DateTime, ForeignKey, func
+from sqlalchemy import String, DateTime, ForeignKey, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
 
 
-class HistoricoEtapa(Base):
-    __tablename__ = "historico_etapas"
+class HistoricoEtapaLead(Base):
+    __tablename__ = "historico_etapa_lead"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lead_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="CASCADE"), nullable=False)
-    etapa_anterior: Mapped[str | None] = mapped_column(String(30))
-    etapa_nova: Mapped[str] = mapped_column(String(30), nullable=False)
-    tempo_na_etapa_segundos: Mapped[int | None] = mapped_column(Integer)
-    usuario_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    etapa: Mapped[str] = mapped_column(String(40), nullable=False)
+    entrou_em: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    saiu_em: Mapped[datetime | None] = mapped_column(DateTime)
+    responsavel_no_periodo_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
 
     lead = relationship("Lead", back_populates="historico_etapas")
-    usuario = relationship("User", foreign_keys=[usuario_id])
+    responsavel_no_periodo = relationship("User", foreign_keys=[responsavel_no_periodo_id])
+
+
+class HistoricoEtapaOportunidade(Base):
+    __tablename__ = "historico_etapa_oportunidade"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    oportunidade_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("oportunidade.id", ondelete="CASCADE"), nullable=False)
+    etapa: Mapped[str] = mapped_column(String(40), nullable=False)
+    entrou_em: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    saiu_em: Mapped[datetime | None] = mapped_column(DateTime)
+    responsavel_no_periodo_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+
+    oportunidade = relationship("Oportunidade", foreign_keys=[oportunidade_id])
+    responsavel_no_periodo = relationship("User", foreign_keys=[responsavel_no_periodo_id])

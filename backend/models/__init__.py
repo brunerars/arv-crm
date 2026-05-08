@@ -14,7 +14,7 @@ from models.lead import Lead
 from models.oportunidade import Oportunidade
 from models.orcamento import Orcamento
 from models.atividade import Atividade
-from models.historico_etapa import HistoricoEtapa
+from models.historico_etapa import HistoricoEtapaLead, HistoricoEtapaOportunidade
 from models.scoring_resposta import ScoringResposta
 from models.meta_vendas import MetaVendas
 from models.event_log import EventLog

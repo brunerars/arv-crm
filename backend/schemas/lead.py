@@ -126,9 +126,9 @@ class Completude(BaseModel):
 
 class HistoricoResponse(BaseModel):
     id: uuid.UUID
-    etapa_anterior: str | None
-    etapa_nova: str
-    tempo_na_etapa_segundos: int | None
-    created_at: datetime
+    etapa: str
+    entrou_em: datetime
+    saiu_em: datetime | None
+    responsavel_no_periodo_id: uuid.UUID | None
 
     model_config = {"from_attributes": True}

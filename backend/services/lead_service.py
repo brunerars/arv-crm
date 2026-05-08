@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from models.lead import Lead, ETAPAS_LEAD
 from models.empresa import Empresa
-from models.historico_etapa import HistoricoEtapa
+from models.historico_etapa import HistoricoEtapaLead
 from schemas.lead import LeadCreate, KanbanResponse, KanbanColumn, LeadResponse, Completude
 
 ETAPAS_ORDER = list(ETAPAS_LEAD)
@@ -64,16 +64,26 @@ class LeadService:
         self.db.add(lead)
         await self.db.flush()
 
-        historico = HistoricoEtapa(
+        # Abre histórico inicial em LEAD_INICIAL
+        historico = HistoricoEtapaLead(
             lead_id=lead.id,
-            etapa_anterior=None,
-            etapa_nova="LEAD_INICIAL",
-            usuario_id=user_id,
+            etapa="LEAD_INICIAL",
+            entrou_em=datetime.utcnow(),
+            responsavel_no_periodo_id=lead.responsavel_pre_vendas_id,
         )
         self.db.add(historico)
         await self.db.commit()
         await self.db.refresh(lead)
         return lead
+
+    async def _close_current_history(self, lead_id: uuid.UUID) -> None:
+        result = await self.db.execute(
+            select(HistoricoEtapaLead)
+            .where(HistoricoEtapaLead.lead_id == lead_id)
+            .where(HistoricoEtapaLead.saiu_em.is_(None))
+        )
+        for entry in result.scalars().all():
+            entry.saiu_em = datetime.utcnow()
 
     async def change_stage(
         self,
@@ -87,19 +97,13 @@ class LeadService:
         if not lead:
             raise ValueError("Lead nao encontrado")
 
-        # Descarte como flag (SPEC §3.3)
+        # Descarte como flag (SPEC §3.3) - fecha historico atual sem abrir novo
         if nova_etapa.upper() == "DESCARTADO":
             lead.descartado = True
             lead.data_descarte = datetime.utcnow()
             if motivo_descarte:
                 lead.motivo_descarte = motivo_descarte
-            historico = HistoricoEtapa(
-                lead_id=lead.id,
-                etapa_anterior=lead.etapa,
-                etapa_nova="DESCARTADO",
-                usuario_id=user_id,
-            )
-            self.db.add(historico)
+            await self._close_current_history(lead.id)
             await self.db.commit()
             await self.db.refresh(lead)
             return lead
@@ -107,28 +111,15 @@ class LeadService:
         if nova_etapa not in ETAPAS_ORDER:
             raise ValueError(f"Etapa invalida: {nova_etapa}")
 
-        etapa_anterior = lead.etapa
+        await self._close_current_history(lead.id)
 
-        last_hist = await self.db.execute(
-            select(HistoricoEtapa)
-            .where(HistoricoEtapa.lead_id == lead.id)
-            .order_by(HistoricoEtapa.created_at.desc())
-            .limit(1)
-        )
-        last_entry = last_hist.scalar_one_or_none()
-        tempo_segundos = None
-        if last_entry:
-            delta = datetime.utcnow() - last_entry.created_at
-            tempo_segundos = int(delta.total_seconds())
-
-        historico = HistoricoEtapa(
+        novo_hist = HistoricoEtapaLead(
             lead_id=lead.id,
-            etapa_anterior=etapa_anterior,
-            etapa_nova=nova_etapa,
-            tempo_na_etapa_segundos=tempo_segundos,
-            usuario_id=user_id,
+            etapa=nova_etapa,
+            entrou_em=datetime.utcnow(),
+            responsavel_no_periodo_id=lead.responsavel_pre_vendas_id,
         )
-        self.db.add(historico)
+        self.db.add(novo_hist)
 
         lead.etapa = nova_etapa
         if nova_etapa == "QUALIFICACAO_OPORTUNIDADE":

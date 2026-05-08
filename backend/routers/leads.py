@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from auth_utils import get_current_user
 from database import get_db
 from models.lead import Lead
-from models.historico_etapa import HistoricoEtapa
+from models.historico_etapa import HistoricoEtapaLead
 from schemas.lead import (
     LeadCreate, LeadUpdate, LeadResponse, LeadDetail,
     KanbanResponse, KanbanColumn,
@@ -178,9 +178,9 @@ async def get_historico(
     _user=Depends(get_current_user),
 ):
     result = await db.execute(
-        select(HistoricoEtapa)
-        .where(HistoricoEtapa.lead_id == id)
-        .order_by(HistoricoEtapa.created_at.desc())
+        select(HistoricoEtapaLead)
+        .where(HistoricoEtapaLead.lead_id == id)
+        .order_by(HistoricoEtapaLead.entrou_em.desc())
     )
     items = result.scalars().all()
     return [HistoricoResponse.model_validate(h) for h in items]
