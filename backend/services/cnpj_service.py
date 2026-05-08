@@ -45,11 +45,11 @@ async def enrich_empresa_cnpj(empresa, db):
     if data.get("municipio"):
         empresa.cidade = data["municipio"]
     if data.get("uf"):
-        empresa.estado = data["uf"]
+        empresa.estado_uf = data["uf"]
     if data.get("cep"):
         empresa.cep = data["cep"].replace(".", "")
     if data.get("telefone"):
-        empresa.telefone = data["telefone"]
+        empresa.telefone_fixo = data["telefone"]
 
     await db.commit()
     await db.refresh(empresa)

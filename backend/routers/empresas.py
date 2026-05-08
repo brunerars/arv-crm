@@ -15,9 +15,10 @@ router = APIRouter(prefix="/empresas", tags=["empresas"])
 @router.get("", response_model=EmpresaList)
 async def list_empresas(
     search: str | None = None,
-    status_conta: str | None = None,
+    is_cliente: bool | None = None,
+    tipo_id: uuid.UUID | None = None,
     responsavel_id: uuid.UUID | None = None,
-    segmento: str | None = None,
+    segmento_mercado_id: uuid.UUID | None = None,
     incluir_inativos: bool = False,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
@@ -40,17 +41,21 @@ async def list_empresas(
         query = query.where(search_filter)
         count_query = count_query.where(search_filter)
 
-    if status_conta:
-        query = query.where(Empresa.status_conta == status_conta)
-        count_query = count_query.where(Empresa.status_conta == status_conta)
+    if is_cliente is not None:
+        query = query.where(Empresa.is_cliente == is_cliente)
+        count_query = count_query.where(Empresa.is_cliente == is_cliente)
+
+    if tipo_id:
+        query = query.where(Empresa.tipo_id == tipo_id)
+        count_query = count_query.where(Empresa.tipo_id == tipo_id)
 
     if responsavel_id:
         query = query.where(Empresa.responsavel_id == responsavel_id)
         count_query = count_query.where(Empresa.responsavel_id == responsavel_id)
 
-    if segmento:
-        query = query.where(Empresa.segmento == segmento)
-        count_query = count_query.where(Empresa.segmento == segmento)
+    if segmento_mercado_id:
+        query = query.where(Empresa.segmento_mercado_id == segmento_mercado_id)
+        count_query = count_query.where(Empresa.segmento_mercado_id == segmento_mercado_id)
 
     total = (await db.execute(count_query)).scalar()
     result = await db.execute(query.order_by(Empresa.created_at.desc()).offset(skip).limit(limit))

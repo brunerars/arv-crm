@@ -17,7 +17,7 @@ COMPLETUDE_MAP = {
         "empresa.nome_fantasia": "Nome da empresa",
         "origem_id": "Origem",
         "empresa.cnpj": "CNPJ",
-        "empresa.telefone": "Telefone fixo",
+        "empresa.telefone_fixo": "Telefone fixo",
         "contato_principal.nome": "Nome do contato",
         "contato_principal.whatsapp": "Telefone/WhatsApp",
         "contato_principal.email": "E-mail",
