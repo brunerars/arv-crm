@@ -1,6 +1,6 @@
-# arv-crm — SPEC v1
+# arv-crm — SPEC v1.1
 > Fonte da verdade do CRM próprio da ARV Systems (substitui Monday Comercial 💰).
-> Data: 2026-05-07 · Bruno Constantinou · Status: rascunho consolidado para revisão
+> Data: 2026-05-07 · Bruno Constantinou · Status: aprovado 2026-05-08 · Revisado 2026-05-08 (v1.1: §12 chain de migrations corrigida — 3 issues resolvidos durante implementação)
 
 Este documento cruza:
 - `arv-crm/` (protótipo FastAPI+Next existente, ~25-30% pronto pela Fase 1A)
@@ -649,25 +649,56 @@ Estado atual: 4 migrations aplicadas (`001_initial_users`, `002_empresas_contato
 
 ### Migrations novas necessárias para Fase 1A
 
+> **Revisão v1.1 (2026-05-08):** corrige 3 issues identificados durante implementação:
+> - Issue 1: SPEC v1 listava ordem que punha `008` (FK em oportunidade) antes da `006` (criar tabela) — fisicamente impossível
+> - Issue 2: SPEC §2.3 declarava schema canônico de Empresa/Contato/Origem mas não havia migration cobrindo o drift entre `models/` atual e §2.3
+> - Issue 3: `historico_etapa` antigo é estruturalmente incompatível com SPEC §3 — em dev (sem prod) DROP+CREATE é correto
+>
+> Chain reescrita: 15 migrations linear (005→019), com criação de tabelas novas COMPLETAS (não fragmentadas em "cria tabela" + "adiciona FK" + "adiciona campo").
+
+#### Macro A — alignment do schema existente (Empresa/Contato/Origem + tabelas de referência)
+
 | # | Migration | Conteúdo |
 |---|---|---|
 | 005 | `005_user_role_papeis_funil` | Estende `User.role` para `pre_vendas \| vendas \| tecnico \| admin` |
-| 006 | `006_oportunidade_entidade` | Nova tabela `oportunidade` + FKs, copia leads em etapas avançadas para oportunidade |
-| 007 | `007_lead_responsavel_3_papeis` | Renomeia `Lead.responsavel_id` → `responsavel_pre_vendas_id`, adiciona índices |
-| 008 | `008_oportunidade_responsaveis` | Adiciona `responsavel_comercial_id`, `responsavel_tecnico_id` à `oportunidade` |
-| 009 | `009_etapas_lead_5_oportunidade_8` | Substitui enum `lead.etapa` (5 valores) e `oportunidade.etapa` (8 valores). Mapeia valores antigos. |
-| 010 | `010_orcamento_entidade` | Nova tabela `orcamento` com versionamento + impostos % |
-| 011 | `011_concorrente` | Nova tabela `concorrente` |
-| 012 | `012_temperatura_comercial_tecnica` | Adiciona `oportunidade.temperatura_comercial`, `temperatura_tecnica` |
-| 013 | `013_atividade_geo_e_tipos` | Adiciona campos geo + extends enum `tipo` (passagem_bastao, visita_*, apresentacao_proposta, tarefa_tecnica) |
-| 014 | `014_scoring_categoria` | Adiciona `categoria` em `scoring_resposta` (TECNICO \| OPORTUNIDADE) + índices |
-| 015 | `015_meta_vendas` | Nova tabela `meta_vendas` |
-| 016 | `016_historico_etapa_split` | Migration arriscada — separa `historico_etapa` em `historico_etapa_lead` e `historico_etapa_oportunidade` |
-| 017 | `017_lead_oportunidade_campos_extra` | Adiciona ~30 campos novos no Lead/Oportunidade (passou_por_comite, n_os, pasta_projeto_atualizada, etc) |
-| 018 | `018_event_log` | Tabela `event_log` para rastreabilidade de eventos de saída |
-| 019 | `019_fix_data_entrada_para_historico` | **CORREÇÃO DE BUG** — substitui usos de `data_entrada` por consulta a `historico_etapa_*.entrou_em` |
+| 006 | `006_tabelas_referencia` | Novas tabelas: `segmento_mercado`, `area_atuacao`, `tipo_empresa`, `status_orcamento`, `equipe_comercial`. Seeds populam de `DADOS-VENDAS.xlsx` sheet "Tabelas de Apoio" (script separado pós-migrations) |
+| 007 | `007_empresa_alignment` | Refactor `empresa`: renomeia `segmento` → FK `segmento_mercado_id`, `num_funcionarios` (str) → `quantidade_funcionarios` (int), `num_plantas` → `n_plantas_industriais`, `distancia_arv_km` → `distancia_planta_km`, `estado` → `estado_uf`. Adiciona: `area_atuacao_id` (FK), `tempo_mercado_anos` (int), `endereco_numero`, `endereco_complemento`, `telefone_fixo`, `linkedin`, `tipo_id` (FK), `is_cliente` (bool), `icp_score` (numeric), `icp_classificacao` (enum A\|B\|C) |
+| 008 | `008_contato_alignment` | Refactor `contato`: substitui enum `nivel_influencia` (novos valores), adiciona `papel_decisao`, renomeia `whatsapp` → `telefone_whatsapp` |
+| 009 | `009_origem_alignment` | Adiciona `canal` em `origem` (3ª dimensão de classificação: ATIVA/PASSIVA × PRE_VENDAS/VENDAS × CANAL) |
 
-Ordem de execução: 005 → 011 → 012 → 013 → 014 → 015 → 018 → 007/008/009 (alterações em Lead/Oportunidade) → 006 → 010 → 016 (split histórico) → 017 → 019.
+#### Macro B — novas entidades (criadas completas, sem fragmentação)
+
+| # | Migration | Conteúdo |
+|---|---|---|
+| 010 | `010_concorrente` | Nova tabela `concorrente` (CNPJ, UF, portfolio, clientes, parceiros) |
+| 011 | `011_oportunidade` | Nova tabela `oportunidade` **completa**: enum etapa (8 valores), `responsavel_comercial_id` + `responsavel_tecnico_id` (FKs), `temperatura_comercial`, `temperatura_tecnica`, `passou_por_comite`, `n_os`, `pasta_projeto_atualizada`, `motivo_descarte`, `acao_recomendada`, `lead_id` (FK opcional pra Lead pai). Cria já com TODOS os campos de §2.3 — não há migrations posteriores em `oportunidade` |
+| 012 | `012_orcamento` | Nova tabela `orcamento` com versionamento (`versao` int), impostos em % (não R$): `ir_pct`, `csll_pct`, `icms_pct`, `iss_pct`, `pis_pct`, `cofins_pct`. Campos: custos detalhados (fixo, financeiro, comissão, markup, cmv, terceiros, mão_obra), valor_base, valor_final, antecipações, FK `oportunidade_id` |
+| 013 | `013_meta_vendas` | Nova tabela `meta_vendas` (substitui meta hardcoded em fórmula Monday) |
+| 014 | `014_event_log` | Tabela `event_log` para rastreabilidade de eventos de saída/entrada |
+
+#### Macro C — alterações em entidades existentes
+
+| # | Migration | Conteúdo |
+|---|---|---|
+| 015 | `015_lead_etapas_e_alignment` | Refactor `lead`: renomeia `responsavel_id` → `responsavel_pre_vendas_id`, substitui enum `etapa` (5 valores SPEC §3.1), adiciona `passou_por_comite`, `motivo_descarte`, `data_reativacao`, `status_reativacao`. Mapeia valores antigos pros novos. |
+| 016 | `016_atividade_geo_e_tipos` | Estende enum `tipo` (passagem_bastao, visita_comercial, visita_tecnica, apresentacao_proposta, tarefa_tecnica) + campos geo (latitude, longitude, endereco_visita) |
+| 017 | `017_scoring_categoria` | Adiciona `categoria` em `scoring_resposta` (`TECNICO \| OPORTUNIDADE`) + índices |
+
+#### Macro D — schema breaking + fix
+
+| # | Migration | Conteúdo |
+|---|---|---|
+| 018 | `018_historico_etapa_split_recreate` | **DROP** `historico_etapa` antigo (`etapa_anterior`, `etapa_nova`, `tempo_na_etapa_segundos`, `created_at` — incompatível com SPEC §3) **CREATE** `historico_etapa_lead` (`lead_id`, `etapa`, `entrou_em`, `saiu_em`, `responsavel_no_periodo_id`) + `historico_etapa_oportunidade` (idem para `oportunidade_id`). Justificativa: dev sem prod, sem dados reais — DROP+CREATE > migração de dados que seria custosa e descartável. |
+| 019 | `019_fix_data_entrada_para_historico` | **CORREÇÃO DE BUG** — substitui usos de `lead.data_entrada` (campo plano que era usado como "tempo na etapa atual") por consulta a `historico_etapa_lead.entrou_em` da etapa atual. Aplicado nos services de tempo na etapa, dashboards e SLAs. |
+
+**Ordem de execução: linear 005 → 006 → 007 → 008 → 009 → 010 → 011 → 012 → 013 → 014 → 015 → 016 → 017 → 018 → 019.** Nenhuma migration depende de algo que vem depois.
+
+**Seeds pós-migrations (script `backend/scripts/seed_referencias.py`):**
+- `segmento_mercado` ← DADOS-VENDAS.xlsx sheet "Segmentos de Mercado"
+- `area_atuacao` ← idem sheet "Áreas de Atuação ARV"
+- `tipo_empresa` ← idem sheet "Tipo de Empresa"
+- `status_orcamento` ← idem sheet "Status de Orçamento"
+- `equipe_comercial` ← idem sheet "Equipe Comercial"
 
 ---
 
@@ -686,7 +717,7 @@ Ordem de execução: 005 → 011 → 012 → 013 → 014 → 015 → 018 → 007
 (Detalhamento atomic em GSD quando você autorizar.)
 
 ```
-1. Schema base (migrations 005-019) [16-32h]
+1. Schema base (migrations 005-019, inclui alignment Empresa/Contato/Origem) [24-40h]
 2. Refactor Lead (etapas, responsáveis, descarte/reativação) [12-20h]
 3. Criar Oportunidade (entidade + serviços + endpoints) [16-28h]
 4. Criar Orcamento (entidade + cálculos + versionamento) [12-20h]
@@ -698,10 +729,10 @@ Ordem de execução: 005 → 011 → 012 → 013 → 014 → 015 → 018 → 007
 10. Corrigir bug data_entrada → HistoricoEtapa em SLA worker, dashboard, kanban [4-6h]
 11. Deploy staging + onboarding 2-3 piloto [8-12h]
 
-TOTAL Fase 1A: ~170-286h ≈ 5-8 semanas em 30-40h/sem
+TOTAL Fase 1A: ~178-294h ≈ 5-8 semanas em 30-40h/sem
 ```
 
-(Estimativas refinadas após mapping linha-a-linha das colunas.)
+(Estimativa Schema base subiu de 16-32h pra 24-40h em v1.1 — refactor de Empresa/Contato/Origem com tabelas de referência adiciona ~8h de trabalho.)
 
 ---
 
