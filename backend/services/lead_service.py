@@ -92,21 +92,19 @@ class LeadService:
         user_id: uuid.UUID,
         motivo_descarte: str | None = None,
     ) -> Lead:
+        # Compat: legacy ChangeStageRequest com nova_etapa="DESCARTADO" delega
+        # pro endpoint dedicado descartar_lead.
+        if nova_etapa.upper() == "DESCARTADO":
+            if not motivo_descarte:
+                raise ValueError("motivo_descarte obrigatorio para descartar")
+            return await self.descartar_lead(lead_id, motivo_descarte, user_id)
+
         result = await self.db.execute(select(Lead).where(Lead.id == lead_id))
         lead = result.scalar_one_or_none()
         if not lead:
             raise ValueError("Lead nao encontrado")
-
-        # Descarte como flag (SPEC §3.3) - fecha historico atual sem abrir novo
-        if nova_etapa.upper() == "DESCARTADO":
-            lead.descartado = True
-            lead.data_descarte = datetime.utcnow()
-            if motivo_descarte:
-                lead.motivo_descarte = motivo_descarte
-            await self._close_current_history(lead.id)
-            await self.db.commit()
-            await self.db.refresh(lead)
-            return lead
+        if lead.descartado:
+            raise ValueError("Lead descartado nao pode mudar de etapa. Reative primeiro via POST /leads/{id}/reativar")
 
         if nova_etapa not in ETAPAS_ORDER:
             raise ValueError(f"Etapa invalida: {nova_etapa}")
@@ -124,6 +122,67 @@ class LeadService:
         lead.etapa = nova_etapa
         if nova_etapa == "QUALIFICACAO_OPORTUNIDADE":
             lead.data_qualificacao = datetime.utcnow()
+
+        await self.db.commit()
+        await self.db.refresh(lead)
+        return lead
+
+    async def descartar_lead(
+        self, lead_id: uuid.UUID, motivo: str, user_id: uuid.UUID
+    ) -> Lead:
+        """SPEC §3.3 - descarte e flag, nao etapa. Fecha historico sem abrir novo."""
+        result = await self.db.execute(select(Lead).where(Lead.id == lead_id))
+        lead = result.scalar_one_or_none()
+        if not lead:
+            raise ValueError("Lead nao encontrado")
+        if lead.descartado:
+            raise ValueError("Lead ja esta descartado")
+        if not motivo or not motivo.strip():
+            raise ValueError("Motivo do descarte e obrigatorio")
+
+        lead.descartado = True
+        lead.data_descarte = datetime.utcnow()
+        lead.motivo_descarte = motivo.strip()
+
+        await self._close_current_history(lead.id)
+
+        await self.db.commit()
+        await self.db.refresh(lead)
+        return lead
+
+    async def reativar_lead(
+        self,
+        lead_id: uuid.UUID,
+        nova_etapa: str,
+        status_reativacao: str | None,
+        user_id: uuid.UUID,
+    ) -> Lead:
+        """SPEC §3.3 - reativacao zera flag e abre novo historico."""
+        if nova_etapa not in ETAPAS_ORDER:
+            raise ValueError(f"Etapa invalida: {nova_etapa}")
+
+        result = await self.db.execute(select(Lead).where(Lead.id == lead_id))
+        lead = result.scalar_one_or_none()
+        if not lead:
+            raise ValueError("Lead nao encontrado")
+        if not lead.descartado:
+            raise ValueError("Lead nao esta descartado")
+
+        lead.descartado = False
+        lead.data_reativacao = datetime.utcnow()
+        lead.status_reativacao = status_reativacao
+        lead.etapa = nova_etapa
+
+        # Garantia: fecha qualquer historico aberto (descarte ja deveria ter fechado)
+        await self._close_current_history(lead.id)
+
+        novo_hist = HistoricoEtapaLead(
+            lead_id=lead.id,
+            etapa=nova_etapa,
+            entrou_em=datetime.utcnow(),
+            responsavel_no_periodo_id=lead.responsavel_pre_vendas_id,
+        )
+        self.db.add(novo_hist)
 
         await self.db.commit()
         await self.db.refresh(lead)
@@ -167,13 +226,15 @@ class LeadService:
         responsavel_id: uuid.UUID | None = None,
         temperatura: str | None = None,
         search: str | None = None,
+        incluir_descartados: bool = False,
     ) -> KanbanResponse:
         query = (
             select(Lead)
             .options(selectinload(Lead.empresa))
             .where(Lead.ativo == True)
-            .where(Lead.descartado == False)
         )
+        if not incluir_descartados:
+            query = query.where(Lead.descartado == False)
 
         if responsavel_id:
             query = query.where(Lead.responsavel_pre_vendas_id == responsavel_id)

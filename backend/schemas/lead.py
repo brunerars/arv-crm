@@ -113,7 +113,32 @@ class KanbanResponse(BaseModel):
 
 class ChangeStageRequest(BaseModel):
     nova_etapa: str
-    motivo_descarte: str | None = None
+    motivo_descarte: str | None = None  # deprecated: usar POST /leads/{id}/descartar
+
+    @field_validator("nova_etapa")
+    @classmethod
+    def validate_etapa(cls, v):
+        if v.upper() == "DESCARTADO":
+            return v.upper()  # delegado pro descartar_lead via service (compat)
+        if v not in ETAPAS_LEAD:
+            raise ValueError(f"Etapa deve ser: {', '.join(ETAPAS_LEAD)}")
+        return v
+
+
+class DescartarRequest(BaseModel):
+    motivo: str
+
+
+class ReativarRequest(BaseModel):
+    nova_etapa: str = "LEAD_INICIAL"
+    status_reativacao: str | None = None
+
+    @field_validator("nova_etapa")
+    @classmethod
+    def validate_etapa(cls, v):
+        if v not in ETAPAS_LEAD:
+            raise ValueError(f"Etapa deve ser: {', '.join(ETAPAS_LEAD)}")
+        return v
 
 
 class Completude(BaseModel):
