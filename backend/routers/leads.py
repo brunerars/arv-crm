@@ -54,8 +54,8 @@ async def list_leads(
         query = query.where(Lead.temperatura == temperatura)
         count_query = count_query.where(Lead.temperatura == temperatura)
     if responsavel_id:
-        query = query.where(Lead.responsavel_id == responsavel_id)
-        count_query = count_query.where(Lead.responsavel_id == responsavel_id)
+        query = query.where(Lead.responsavel_pre_vendas_id == responsavel_id)
+        count_query = count_query.where(Lead.responsavel_pre_vendas_id == responsavel_id)
     if search:
         from models.empresa import Empresa
         query = query.join(Empresa).where(Empresa.nome_fantasia.ilike(f"%{search}%"))

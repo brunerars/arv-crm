@@ -6,31 +6,44 @@ from pydantic import BaseModel, field_validator
 from schemas.empresa import EmpresaResponse
 from schemas.contato import ContatoResponse
 
+ETAPAS_LEAD = (
+    "LEAD_INICIAL",
+    "ANALISE_INTERNA",
+    "QUALIFICACAO_INICIAL",
+    "QUALIFICACAO_OPORTUNIDADE",
+)
+TEMPERATURAS = ("frio", "morno", "quente")
+
 
 class LeadCreate(BaseModel):
     empresa_id: uuid.UUID
     contato_principal_id: uuid.UUID | None = None
     origem_id: uuid.UUID | None = None
-    responsavel_id: uuid.UUID | None = None
-    temperatura: str = "frio"
+    sub_origem_canal: str | None = None
+    responsavel_pre_vendas_id: uuid.UUID | None = None
+    nome_projeto: str | None = None
+    descricao_demanda: str | None = None
     produto_interesse: str | None = None
     area_atuacao: str | None = None
     tipo_entrega: str | None = None
+    temperatura: str = "frio"
     valor_estimado: float = 0
 
     @field_validator("temperatura")
     @classmethod
     def validate_temperatura(cls, v):
-        allowed = ["frio", "morno", "quente"]
-        if v not in allowed:
-            raise ValueError(f"Temperatura deve ser: {', '.join(allowed)}")
+        if v not in TEMPERATURAS:
+            raise ValueError(f"Temperatura deve ser: {', '.join(TEMPERATURAS)}")
         return v
 
 
 class LeadUpdate(BaseModel):
     contato_principal_id: uuid.UUID | None = None
     origem_id: uuid.UUID | None = None
-    responsavel_id: uuid.UUID | None = None
+    sub_origem_canal: str | None = None
+    responsavel_pre_vendas_id: uuid.UUID | None = None
+    nome_projeto: str | None = None
+    descricao_demanda: str | None = None
     temperatura: str | None = None
     produto_interesse: str | None = None
     area_atuacao: str | None = None
@@ -48,7 +61,10 @@ class LeadResponse(BaseModel):
     empresa_id: uuid.UUID
     contato_principal_id: uuid.UUID | None
     origem_id: uuid.UUID | None
-    responsavel_id: uuid.UUID | None
+    sub_origem_canal: str | None
+    responsavel_pre_vendas_id: uuid.UUID | None
+    nome_projeto: str | None
+    descricao_demanda: str | None
     etapa: str
     sub_status: str | None
     temperatura: str
@@ -58,9 +74,15 @@ class LeadResponse(BaseModel):
     lead_score: int
     classificacao: str | None
     valor_estimado: float
+    descartado: bool
     motivo_descarte: str | None
-    data_entrada: datetime
+    data_descarte: datetime | None
+    data_reativacao: datetime | None
+    status_reativacao: str | None
+    data_entrada_pre_vendas: datetime
     data_qualificacao: datetime | None
+    data_ultima_atividade: datetime | None
+    passou_por_comite: bool
     prox_atividade: str | None
     data_prox_atividade: datetime | None
     ativo: bool

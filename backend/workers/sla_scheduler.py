@@ -32,7 +32,8 @@ async def check_sla_violations():
         result = await db.execute(
             select(Lead)
             .options(selectinload(Lead.origem), selectinload(Lead.empresa))
-            .where(Lead.etapa.notin_(["qualificado", "descartado"]))
+            .where(Lead.descartado == False)
+            .where(Lead.ativo == True)
         )
         leads = result.scalars().all()
 

@@ -1,37 +1,41 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import select, func, text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from models.lead import Lead
+from models.lead import Lead, ETAPAS_LEAD
 from models.empresa import Empresa
 from models.historico_etapa import HistoricoEtapa
 from schemas.lead import LeadCreate, KanbanResponse, KanbanColumn, LeadResponse, Completude
 
-ETAPAS_ORDER = ["prospeccao", "primeiro_contato", "qualificacao", "qualificado", "descartado"]
+ETAPAS_ORDER = list(ETAPAS_LEAD)
 
+# SPEC §4.1 - travas pre-vendas. Implementacao formal em B2 (stage_validators.py).
+# Aqui mantenho apenas o calculo de completude visual (UI).
 COMPLETUDE_MAP = {
-    "prospeccao": {
+    "LEAD_INICIAL": {
         "empresa.nome_fantasia": "Nome da empresa",
-        "origem_id": "Origem",
         "empresa.cnpj": "CNPJ",
+        "origem_id": "Origem",
+        "sub_origem_canal": "Canal da origem",
         "empresa.telefone_fixo": "Telefone fixo",
         "contato_principal.nome": "Nome do contato",
         "contato_principal.telefone_whatsapp": "Telefone/WhatsApp",
         "contato_principal.email": "E-mail",
     },
-    "primeiro_contato": {
+    "ANALISE_INTERNA": {},
+    "QUALIFICACAO_INICIAL": {
+        "empresa.segmento_mercado_id": "Segmento de mercado",
+        "empresa.tempo_mercado_anos": "Tempo de mercado",
+        "empresa.distancia_planta_km": "Distancia da planta (km)",
+        "empresa.icp_score": "ICP score",
+        "empresa.icp_classificacao": "ICP classificacao",
+    },
+    "QUALIFICACAO_OPORTUNIDADE": {
         "produto_interesse": "Produto",
-        "area_atuacao": "Área de atuação",
-    },
-    "qualificacao": {
-        "tipo_entrega": "Tipo de entrega",
-        "lead_score": "Opportunity Score",
-    },
-    "descartado": {
-        "motivo_descarte": "Motivo de descarte",
+        "area_atuacao": "Area de atuacao",
     },
 }
 
@@ -48,23 +52,22 @@ class LeadService:
     async def create_lead(self, data: LeadCreate, user_id: uuid.UUID) -> Lead:
         emp = await self.db.execute(select(Empresa).where(Empresa.id == data.empresa_id))
         if not emp.scalar_one_or_none():
-            raise ValueError("Empresa não encontrada")
+            raise ValueError("Empresa nao encontrada")
 
         lead_id = await self.generate_lead_id()
         lead = Lead(
             lead_id=lead_id,
             **data.model_dump(),
         )
-        if not lead.responsavel_id:
-            lead.responsavel_id = user_id
+        if not lead.responsavel_pre_vendas_id:
+            lead.responsavel_pre_vendas_id = user_id
         self.db.add(lead)
         await self.db.flush()
 
-        # Create initial history entry
         historico = HistoricoEtapa(
             lead_id=lead.id,
             etapa_anterior=None,
-            etapa_nova="prospeccao",
+            etapa_nova="LEAD_INICIAL",
             usuario_id=user_id,
         )
         self.db.add(historico)
@@ -73,19 +76,39 @@ class LeadService:
         return lead
 
     async def change_stage(
-        self, lead_id: uuid.UUID, nova_etapa: str, user_id: uuid.UUID, motivo_descarte: str | None = None
+        self,
+        lead_id: uuid.UUID,
+        nova_etapa: str,
+        user_id: uuid.UUID,
+        motivo_descarte: str | None = None,
     ) -> Lead:
         result = await self.db.execute(select(Lead).where(Lead.id == lead_id))
         lead = result.scalar_one_or_none()
         if not lead:
-            raise ValueError("Lead não encontrado")
+            raise ValueError("Lead nao encontrado")
+
+        # Descarte como flag (SPEC §3.3)
+        if nova_etapa.upper() == "DESCARTADO":
+            lead.descartado = True
+            lead.data_descarte = datetime.utcnow()
+            if motivo_descarte:
+                lead.motivo_descarte = motivo_descarte
+            historico = HistoricoEtapa(
+                lead_id=lead.id,
+                etapa_anterior=lead.etapa,
+                etapa_nova="DESCARTADO",
+                usuario_id=user_id,
+            )
+            self.db.add(historico)
+            await self.db.commit()
+            await self.db.refresh(lead)
+            return lead
 
         if nova_etapa not in ETAPAS_ORDER:
-            raise ValueError(f"Etapa inválida: {nova_etapa}")
+            raise ValueError(f"Etapa invalida: {nova_etapa}")
 
         etapa_anterior = lead.etapa
 
-        # Calculate time in previous stage
         last_hist = await self.db.execute(
             select(HistoricoEtapa)
             .where(HistoricoEtapa.lead_id == lead.id)
@@ -98,7 +121,6 @@ class LeadService:
             delta = datetime.utcnow() - last_entry.created_at
             tempo_segundos = int(delta.total_seconds())
 
-        # Create history
         historico = HistoricoEtapa(
             lead_id=lead.id,
             etapa_anterior=etapa_anterior,
@@ -108,12 +130,9 @@ class LeadService:
         )
         self.db.add(historico)
 
-        # Update lead
         lead.etapa = nova_etapa
-        if nova_etapa == "qualificado":
+        if nova_etapa == "QUALIFICACAO_OPORTUNIDADE":
             lead.data_qualificacao = datetime.utcnow()
-        if nova_etapa == "descartado" and motivo_descarte:
-            lead.motivo_descarte = motivo_descarte
 
         await self.db.commit()
         await self.db.refresh(lead)
@@ -158,14 +177,18 @@ class LeadService:
         temperatura: str | None = None,
         search: str | None = None,
     ) -> KanbanResponse:
-        query = select(Lead).options(selectinload(Lead.empresa)).where(Lead.ativo == True)
+        query = (
+            select(Lead)
+            .options(selectinload(Lead.empresa))
+            .where(Lead.ativo == True)
+            .where(Lead.descartado == False)
+        )
 
         if responsavel_id:
-            query = query.where(Lead.responsavel_id == responsavel_id)
+            query = query.where(Lead.responsavel_pre_vendas_id == responsavel_id)
         if temperatura:
             query = query.where(Lead.temperatura == temperatura)
         if search:
-            from models.empresa import Empresa
             query = query.join(Empresa).where(Empresa.nome_fantasia.ilike(f"%{search}%"))
 
         result = await self.db.execute(query.order_by(Lead.created_at.desc()))
