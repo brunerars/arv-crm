@@ -16,6 +16,8 @@ from schemas.oportunidade import (
     OportunidadeResponse,
     KanbanResponse,
     ChangeStageRequest,
+    DescartarRequest,
+    ReativarRequest,
     HistoricoOportunidadeResponse,
 )
 from services.oportunidade_service import OportunidadeService
@@ -164,6 +166,36 @@ async def change_stage(
     service = OportunidadeService(db)
     try:
         opp = await service.change_stage(id, data.nova_etapa, current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return OportunidadeResponse.model_validate(opp)
+
+
+@router.post("/{id}/descartar", response_model=OportunidadeResponse)
+async def descartar_oportunidade(
+    id: uuid.UUID,
+    data: DescartarRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = OportunidadeService(db)
+    try:
+        opp = await service.descartar_oportunidade(id, data.motivo, current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return OportunidadeResponse.model_validate(opp)
+
+
+@router.post("/{id}/reativar", response_model=OportunidadeResponse)
+async def reativar_oportunidade(
+    id: uuid.UUID,
+    data: ReativarRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = OportunidadeService(db)
+    try:
+        opp = await service.reativar_oportunidade(id, data.nova_etapa, data.status_reativacao, current_user.id)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     return OportunidadeResponse.model_validate(opp)

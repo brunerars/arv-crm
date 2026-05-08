@@ -99,6 +99,64 @@ class OportunidadeService:
         await self.db.refresh(opp)
         return opp
 
+    async def descartar_oportunidade(
+        self, oportunidade_id: uuid.UUID, motivo: str, user_id: uuid.UUID
+    ) -> Oportunidade:
+        result = await self.db.execute(select(Oportunidade).where(Oportunidade.id == oportunidade_id))
+        opp = result.scalar_one_or_none()
+        if not opp:
+            raise ValueError("Oportunidade nao encontrada")
+        if opp.descartado:
+            raise ValueError("Oportunidade ja esta descartada")
+        if not motivo or not motivo.strip():
+            raise ValueError("Motivo do descarte e obrigatorio")
+
+        opp.descartado = True
+        opp.data_descarte = datetime.utcnow()
+        opp.motivo_descarte = motivo.strip()
+
+        await self._close_current_history(opp.id)
+
+        await self.db.commit()
+        await self.db.refresh(opp)
+        return opp
+
+    async def reativar_oportunidade(
+        self,
+        oportunidade_id: uuid.UUID,
+        nova_etapa: str,
+        status_reativacao: str | None,
+        user_id: uuid.UUID,
+    ) -> Oportunidade:
+        if nova_etapa not in ETAPAS_ORDER:
+            raise ValueError(f"Etapa invalida: {nova_etapa}")
+
+        result = await self.db.execute(select(Oportunidade).where(Oportunidade.id == oportunidade_id))
+        opp = result.scalar_one_or_none()
+        if not opp:
+            raise ValueError("Oportunidade nao encontrada")
+        if not opp.descartado:
+            raise ValueError("Oportunidade nao esta descartada")
+
+        opp.descartado = False
+        opp.data_reativacao = datetime.utcnow()
+        opp.status_reativacao = status_reativacao
+        opp.etapa = nova_etapa
+
+        await self._close_current_history(opp.id)
+
+        novo_hist = HistoricoEtapaOportunidade(
+            oportunidade_id=opp.id,
+            etapa=nova_etapa,
+            entrou_em=datetime.utcnow(),
+            responsavel_no_periodo_id=opp.responsavel_comercial_id,
+        )
+        self.db.add(novo_hist)
+
+        await self.db.commit()
+        await self.db.refresh(opp)
+        return opp
+
     async def get_kanban(
         self,
         responsavel_comercial_id: uuid.UUID | None = None,

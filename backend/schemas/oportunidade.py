@@ -174,6 +174,41 @@ class ChangeStageRequest(BaseModel):
         return v
 
 
+class DescartarRequest(BaseModel):
+    motivo: str
+
+
+class ReativarRequest(BaseModel):
+    nova_etapa: str = "ESTIMATIVA"
+    status_reativacao: str | None = None
+
+    @field_validator("nova_etapa")
+    @classmethod
+    def validate_etapa(cls, v):
+        if v not in ETAPAS_OPORTUNIDADE:
+            raise ValueError(f"Etapa deve ser: {', '.join(ETAPAS_OPORTUNIDADE)}")
+        return v
+
+
+class ConverterLeadRequest(BaseModel):
+    nome_projeto: str
+    responsavel_comercial_id: uuid.UUID | None = None
+    responsavel_tecnico_id: uuid.UUID | None = None
+    area_atuacao_id: uuid.UUID | None = None
+    tipo_entrega: str | None = None
+    descricao_demanda_override: str | None = None
+    produto_override: str | None = None
+
+    @field_validator("tipo_entrega")
+    @classmethod
+    def validate_tipo_entrega(cls, v):
+        if v is None:
+            return v
+        if v not in TIPOS_ENTREGA:
+            raise ValueError(f"tipo_entrega deve ser: {', '.join(TIPOS_ENTREGA)}")
+        return v
+
+
 class HistoricoOportunidadeResponse(BaseModel):
     id: uuid.UUID
     etapa: str

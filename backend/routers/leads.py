@@ -15,6 +15,7 @@ from schemas.lead import (
     ChangeStageRequest, DescartarRequest, ReativarRequest,
     Completude, HistoricoResponse,
 )
+from schemas.oportunidade import ConverterLeadRequest, OportunidadeResponse
 from schemas.empresa import EmpresaResponse
 from schemas.contato import ContatoResponse
 from services.lead_service import LeadService
@@ -256,6 +257,22 @@ async def get_historico(
     )
     items = result.scalars().all()
     return [HistoricoResponse.model_validate(h) for h in items]
+
+
+@router.post("/{id}/converter", response_model=OportunidadeResponse, status_code=201)
+async def converter_lead(
+    id: uuid.UUID,
+    data: ConverterLeadRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """SPEC §3.1 handoff: Lead em QUALIFICACAO_OPORTUNIDADE -> nova Oportunidade em ESTIMATIVA."""
+    service = LeadService(db)
+    try:
+        opp = await service.converter_para_oportunidade(id, data, current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return OportunidadeResponse.model_validate(opp)
 
 
 @router.post("/{id}/calculate-score", response_model=LeadResponse)

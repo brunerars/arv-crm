@@ -7,8 +7,10 @@ from sqlalchemy.orm import selectinload
 
 from models.lead import Lead, ETAPAS_LEAD
 from models.empresa import Empresa
-from models.historico_etapa import HistoricoEtapaLead
+from models.historico_etapa import HistoricoEtapaLead, HistoricoEtapaOportunidade
+from models.oportunidade import Oportunidade
 from schemas.lead import LeadCreate, KanbanResponse, KanbanColumn, LeadResponse, Completude
+from schemas.oportunidade import ConverterLeadRequest
 
 ETAPAS_ORDER = list(ETAPAS_LEAD)
 
@@ -187,6 +189,70 @@ class LeadService:
         await self.db.commit()
         await self.db.refresh(lead)
         return lead
+
+    async def converter_para_oportunidade(
+        self,
+        lead_id: uuid.UUID,
+        data: ConverterLeadRequest,
+        user_id: uuid.UUID,
+    ) -> Oportunidade:
+        """SPEC §3.1 handoff. Pre-condicao: lead em QUALIFICACAO_OPORTUNIDADE."""
+        result = await self.db.execute(select(Lead).where(Lead.id == lead_id))
+        lead = result.scalar_one_or_none()
+        if not lead:
+            raise ValueError("Lead nao encontrado")
+        if lead.descartado:
+            raise ValueError("Lead descartado nao pode ser convertido. Reative primeiro.")
+        if lead.etapa != "QUALIFICACAO_OPORTUNIDADE":
+            raise ValueError(
+                f"Lead deve estar em QUALIFICACAO_OPORTUNIDADE para conversao "
+                f"(etapa atual: {lead.etapa})"
+            )
+
+        # Garante 1:1 lead->oportunidade
+        existing = await self.db.execute(
+            select(Oportunidade).where(Oportunidade.lead_id == lead.id)
+        )
+        if existing.scalar_one_or_none():
+            raise ValueError("Lead ja foi convertido em oportunidade")
+
+        seq_result = await self.db.execute(text("SELECT nextval('oportunidade_id_seq')"))
+        seq = seq_result.scalar()
+        oportunidade_id = f"OPP-{seq:04d}"
+
+        now = datetime.utcnow()
+        opp = Oportunidade(
+            oportunidade_id=oportunidade_id,
+            empresa_id=lead.empresa_id,
+            lead_id=lead.id,
+            responsavel_comercial_id=data.responsavel_comercial_id or user_id,
+            responsavel_tecnico_id=data.responsavel_tecnico_id,
+            area_atuacao_id=data.area_atuacao_id,
+            nome_projeto=data.nome_projeto,
+            descricao_demanda=data.descricao_demanda_override or lead.descricao_demanda,
+            produto=data.produto_override or lead.produto_interesse,
+            tipo_entrega=data.tipo_entrega,
+            etapa="ESTIMATIVA",
+            data_handoff=now,
+        )
+        self.db.add(opp)
+        await self.db.flush()
+
+        historico_opp = HistoricoEtapaOportunidade(
+            oportunidade_id=opp.id,
+            etapa="ESTIMATIVA",
+            entrou_em=now,
+            responsavel_no_periodo_id=opp.responsavel_comercial_id,
+        )
+        self.db.add(historico_opp)
+
+        # Fecha historico do lead (lead permanece em QUALIFICACAO_OPORTUNIDADE,
+        # mas sem historico aberto sinaliza que ja foi convertido).
+        await self._close_current_history(lead.id)
+
+        await self.db.commit()
+        await self.db.refresh(opp)
+        return opp
 
     async def calculate_completude(self, lead: Lead) -> Completude:
         etapa = lead.etapa
