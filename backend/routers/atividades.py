@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from auth_utils import get_current_user
 from database import get_db
 from models.atividade import Atividade
-from schemas.atividade import AtividadeCreate, AtividadeResponse, AtividadeList
+from schemas.atividade import AtividadeCreate, AtividadeUpdate, AtividadeResponse, AtividadeList
 
 router = APIRouter(prefix="/atividades", tags=["atividades"])
 
@@ -16,7 +16,9 @@ router = APIRouter(prefix="/atividades", tags=["atividades"])
 @router.get("", response_model=AtividadeList)
 async def list_atividades(
     lead_id: uuid.UUID | None = None,
-    concluida: bool | None = None,
+    oportunidade_id: uuid.UUID | None = None,
+    empresa_id: uuid.UUID | None = None,
+    status: str | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -28,9 +30,15 @@ async def list_atividades(
     if lead_id:
         query = query.where(Atividade.lead_id == lead_id)
         count_query = count_query.where(Atividade.lead_id == lead_id)
-    if concluida is not None:
-        query = query.where(Atividade.concluida == concluida)
-        count_query = count_query.where(Atividade.concluida == concluida)
+    if oportunidade_id:
+        query = query.where(Atividade.oportunidade_id == oportunidade_id)
+        count_query = count_query.where(Atividade.oportunidade_id == oportunidade_id)
+    if empresa_id:
+        query = query.where(Atividade.empresa_id == empresa_id)
+        count_query = count_query.where(Atividade.empresa_id == empresa_id)
+    if status:
+        query = query.where(Atividade.status == status)
+        count_query = count_query.where(Atividade.status == status)
 
     total = (await db.execute(count_query)).scalar()
     result = await db.execute(query.order_by(Atividade.created_at.desc()).offset(skip).limit(limit))
@@ -45,10 +53,31 @@ async def create_atividade(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    atividade = Atividade(**data.model_dump())
+    atividade = Atividade(**data.model_dump(), criada_por_id=current_user.id)
     if not atividade.responsavel_id:
         atividade.responsavel_id = current_user.id
     db.add(atividade)
+    await db.commit()
+    await db.refresh(atividade)
+    return AtividadeResponse.model_validate(atividade)
+
+
+@router.put("/{id}", response_model=AtividadeResponse)
+async def update_atividade(
+    id: uuid.UUID,
+    data: AtividadeUpdate,
+    db: AsyncSession = Depends(get_db),
+    _user=Depends(get_current_user),
+):
+    result = await db.execute(select(Atividade).where(Atividade.id == id))
+    atividade = result.scalar_one_or_none()
+    if not atividade:
+        raise HTTPException(status_code=404, detail="Atividade nao encontrada")
+
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(atividade, key, value)
+
     await db.commit()
     await db.refresh(atividade)
     return AtividadeResponse.model_validate(atividade)
@@ -63,10 +92,10 @@ async def complete_atividade(
     result = await db.execute(select(Atividade).where(Atividade.id == id))
     atividade = result.scalar_one_or_none()
     if not atividade:
-        raise HTTPException(status_code=404, detail="Atividade não encontrada")
+        raise HTTPException(status_code=404, detail="Atividade nao encontrada")
 
-    atividade.concluida = True
-    atividade.data_conclusao = datetime.utcnow()
+    atividade.status = "realizada"
+    atividade.data_realizacao = datetime.utcnow()
     await db.commit()
     await db.refresh(atividade)
     return AtividadeResponse.model_validate(atividade)
