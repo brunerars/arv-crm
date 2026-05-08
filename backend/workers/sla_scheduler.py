@@ -9,17 +9,31 @@ from sqlalchemy.orm import selectinload
 
 from config import settings
 from models.lead import Lead
+from models.historico_etapa import HistoricoEtapaLead
 from sla_config import SLA_RULES
 
 logger = logging.getLogger(__name__)
 
 _redis = None
 
+
 def _get_redis():
     global _redis
     if _redis is None:
         _redis = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
     return _redis
+
+
+async def _entrou_em_etapa_atual(db: AsyncSession, lead_id) -> datetime | None:
+    """SPEC §6: tempo na etapa vem do registro de historico atual (saiu_em IS NULL)."""
+    result = await db.execute(
+        select(HistoricoEtapaLead.entrou_em)
+        .where(HistoricoEtapaLead.lead_id == lead_id)
+        .where(HistoricoEtapaLead.saiu_em.is_(None))
+        .order_by(HistoricoEtapaLead.entrou_em.desc())
+        .limit(1)
+    )
+    return result.scalar()
 
 
 async def check_sla_violations():
@@ -54,7 +68,11 @@ async def check_sla_violations():
             if sla_days is None:
                 continue
 
-            days_in_stage = (now - lead.data_entrada).days
+            entrou_em = await _entrou_em_etapa_atual(db, lead.id)
+            if entrou_em is None:
+                continue
+
+            days_in_stage = (now - entrou_em).days
             if days_in_stage > sla_days:
                 violations.append({
                     "lead_id": str(lead.id),

@@ -50,8 +50,6 @@ class Lead(Base):
     data_reativacao: Mapped[datetime | None] = mapped_column(DateTime)
     status_reativacao: Mapped[str | None] = mapped_column(String(50))
 
-    # data_entrada legacy mantido ate 019 substituir por consulta a historico_etapa_lead
-    data_entrada: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     data_entrada_pre_vendas: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
     data_qualificacao: Mapped[datetime | None] = mapped_column(DateTime)
     data_ultima_atividade: Mapped[datetime | None] = mapped_column(DateTime)
