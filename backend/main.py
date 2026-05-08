@@ -14,7 +14,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from config import settings
-from routers import auth, empresas, contatos, origens, leads, oportunidades, atividades, dashboard
+from routers import auth, empresas, contatos, origens, leads, oportunidades, orcamentos, atividades, dashboard
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -63,6 +63,7 @@ app.include_router(contatos.router, prefix="/api")
 app.include_router(origens.router, prefix="/api")
 app.include_router(leads.router, prefix="/api")
 app.include_router(oportunidades.router, prefix="/api")
+app.include_router(orcamentos.router, prefix="/api")
 app.include_router(atividades.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 
