@@ -32,7 +32,7 @@ async def register(request: Request, data: UserCreate, db: AsyncSession = Depend
         # Subsequent users: admin_secret required (only admins know it)
         if data.admin_secret != settings.ADMIN_SECRET:
             raise HTTPException(status_code=403, detail="Apenas administradores podem criar novos usuários")
-        role = "user"
+        role = "vendas"
 
     user = User(
         email=data.email,
@@ -86,7 +86,7 @@ async def create_user(
         email=data.email,
         password_hash=hash_password(data.password),
         name=data.name,
-        role="user",
+        role="vendas",
     )
     db.add(user)
     await db.commit()
